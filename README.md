@@ -1,6 +1,6 @@
 # Google Student Training in Engineering Program
 
-This repo contains the projects you'll work on for the first half of STEP.
+This repo contains Dennis' portfolio and STEP projects.
 This work is based on the [Google Software Product Sprint](https://g.co/softwareproductsprint) program.
 
 To get started:
