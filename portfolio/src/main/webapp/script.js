@@ -28,7 +28,7 @@ function checkOpacity(e){
         else{
             opacityDiv.classList.remove("active");
         }
-    });
+    });  
 }
 
 window.addEventListener("scroll", checkOpacity);
