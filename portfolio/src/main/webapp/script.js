@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * Adds a random greeting to the page.
- */
-function addRandomGreeting() {
-  const greetings =
-      ['Hello world!', '¡Hola Mundo!', '你好，世界！', 'Bonjour le monde!'];
+var opacityDivs = document.querySelectorAll('.opacity-change');
 
-  // Pick a random greeting.
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+function checkOpacity(e){
+    
+    opacityDivs.forEach(opacityDiv => {
 
-  // Add it to the page.
-  const greetingContainer = document.getElementById('greeting-container');
-  greetingContainer.innerText = greeting;
+        const opacityChangeAt = window.scrollY + window.innerHeight - opacityDiv.height/2;
+        const divBottom = opacityDiv.offsetTop + opacityDiv.height;
+        const isHalfShown = opacityChangeAt > opacityDiv.offsetTop;
+        const isNotScrolledPast = window.scrollY < divBottom;
+        if(isHalfShown && isNotScrolledPast){
+            opacityDiv.classList.add("active");
+        }
+        else{
+            opacityDiv.classList.remove("active");
+        }
+    });
 }
+
+window.addEventListener("scroll", checkOpacity);
