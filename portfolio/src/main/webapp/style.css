@@ -1,9 +1,349 @@
-#content {
-  margin-left: auto;
-  margin-right: auto;
-  width: 650px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-#greeting-container {
-  margin-top: 20px;
+@font-face {
+  font-family: AvenirLight;
+  src: url(../fonts/avenir.otf);
+}
+
+@font-face {
+  font-family: PoppinsSemiBold;
+  src: url(../fonts/Poppins-SemiBold.ttf);
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 40px;
+  padding-right: 100px;
+  padding-bottom: 1em;
+  z-index: 1000000;
+  font-weight: 400;
+  background: white;
+}
+
+#name{
+  position: relative;
+  font-weight: bold;
+  color: black;
+  font-size: 2.4em;
+  letter-spacing: 2px;
+  padding-left: 1em;
+  font-family: PoppinsSemiBold;
+}
+
+#name:hover{
+    cursor: default;
+}
+
+header ul {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+header ul li {
+  position: relative;
+  list-style: none;
+}
+
+header ul li a {
+  position: relative;
+  margin: 0 15px;
+  text-decoration: none;
+  color: black;
+  letter-spacing: 2px;
+  font-weight: 500;
+  font-family: AvenirLight;
+}
+
+.rectangles{
+    position: absolute;
+    margin-top: 5em;
+    height: 50em;
+    width: 100%;
+    z-index: -1;
+}
+
+#rectangle1{
+    height: 100%;
+    width: 40%;
+    background-image: linear-gradient(-90deg, #c9b997, #decca6);
+    float: left;
+}
+
+#rectangle2{
+    height: 100%;
+    width: 60%;
+    background:white;
+    float: left;
+}
+
+.introductory{
+    position: absolute;
+    margin-top: 13em;
+    margin-left: 22em;
+    height: 33em;
+    width: 50%;
+    z-index: 1;  
+}
+
+#picturePlace{
+    width: 47.5%;
+    height: 100%;
+    background-image: linear-gradient(-90deg, #d9d0b4, #d6cdb8);
+    float: left;
+    box-shadow: -5px 10px 18px #888888; 
+    align-content: center;
+    text-align: center;
+    font-family: PoppinsSemiBold;
+}
+
+#picturePlace h3{
+    font-family: AvenirLight;
+    font-weight: 400;
+}
+
+#myPicture{
+    margin-top: 2em;
+    width: 50%;
+    border-radius: 50%;
+    text-align: center;
+}
+
+#mediaLogos{
+    left: 0;
+    position: absolute;
+    height: 3.5em;
+    background: white;
+    bottom: 0;
+    width: 47.5%;
+    display: flex;
+    align-items: center;
+}
+
+#mediaLogos ul {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#mediaLogos ul li {
+  position: relative;
+  list-style: none;
+}
+
+#mediaLogos ul li img {
+  position: relative;
+  width: 40%;
+  margin-top: 0.5em;
+}
+
+#shortProfile{
+    width: 52.5%;
+    height: 100%;
+    background: white;
+    float: left;
+}
+
+#shortProfile h1{
+    font-family: PoppinsSemiBold;
+    margin-top: 0.2em;
+    margin-left: 0.3em;
+    font-size: 7em;
+    margin-bottom: 0;
+}
+
+#shortProfile h3{
+    margin-top: 0;
+    font-family: AvenirLight;
+    margin-left: 1.8em;
+}
+
+#button1{
+    transition: 0.5s;
+    margin-left: 2.1em;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    color: white;
+    font-family: AvenirLight;
+    position: absolute;
+    width: 7em;
+    height: 2.2em;
+    background: #030bfc;
+    border-radius: 20%/50%;
+    padding-top: 0.5em;
+}
+
+#button1:hover{
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+
+#button2{
+    transition: 0.5s;
+    font-weight: bold;
+    text-align: center;
+    color: black;
+    vertical-align: middle;
+    font-family: AvenirLight;
+    position: absolute;
+    margin-left: 9.5em;
+    width: 7em;
+    height: 2.2em;
+    background: white;
+    border-radius: 20%/50%;
+    border-style: solid;
+    padding-top: 0.5em;
+    cursor: pointer;
+}
+
+#button2:hover{
+    color: white;
+    background: #030bfc;
+    border-color: #030bfc;
+    cursor: pointer;
+}
+
+#shortProfile p{
+    font-family: AvenirLight;
+    margin-top: 4em;
+    margin-left: 2.1em;
+}
+
+#footerIndex{
+    font-family: AvenirLight;
+    background-color: white;
+    width: 100%;
+    height: 6em;
+    position: absolute;
+    text-align: left;
+    margin-top: 55em;
+}
+
+#footerIndex p{
+    padding-top: 2em;
+    padding-left: 1em;
+}
+
+.resumeBody{
+    background-image: linear-gradient(-90deg, #c9b997, #decca6);
+}
+
+.centralScroll{
+    position: relative;
+    width: 40%;
+    margin: auto;
+    height: 140em;
+    color: black;
+    align-content: center;
+}
+
+.centralScroll h1{
+    text-align: center;
+    font-size: 35px;
+    font-family: PoppinsSemiBold;
+    color: black;
+    padding-top: 6em;
+    padding-bottom: 2em;
+}
+
+.centralScroll h2{
+    text-align: left;
+    font-size: 25px;
+    font-family: PoppinsSemiBold;
+    color: black;
+}
+
+.tickets{
+    width: 100%;
+    height: 20em;
+    background: white;
+    margin-top: 1.5em;
+    box-shadow: -5px 10px 18px #888888;
+    overflow: hidden;
+    position: relative;
+}
+
+.ticketsLeft{
+    width: 40%;
+    margin-left: 1em;
+    position: absolute;
+    float: left;
+    height: 100%;
+    margin-top: 2em;
+}
+
+.ticketsLeft h3{
+    color: blue;
+    font-family: PoppinsSemiBold;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.ticketsLeft h4{
+    color: black;
+    font-family: AvenirLight;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.ticketsLeft h5{
+    color: black;
+    font-family: AvenirLight;
+    font-weight: 400;
+    font-size: 15px;
+}
+
+.ticketsRight{
+    float: right;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    margin-top: 3em;
+    margin-right: 2em;
+    color: black;
+    font-family: AvenirLight;
+    font-size: 16px;
+}
+
+#footerResume{
+    position: relative;
+    font-family: AvenirLight;
+    background-color: white;
+    width: 100%;
+    height: 6em;
+    text-align: left;
+    padding-top: 2em;
+    padding-left: 1em;
+}
+
+.hideLeft{
+    transform: translateX(-50%);
+}
+
+.hideRight{
+    transform: translateX(50%);
+}
+
+.slideIn{
+    opacity: 0;
+    transition: all .5s;
+}
+
+.active{
+    opacity: 1;
+    transform: translateX(0%);
 }

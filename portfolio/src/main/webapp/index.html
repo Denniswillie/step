@@ -4,15 +4,51 @@
     <meta charset="UTF-8">
     <title>My Portfolio</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
   </head>
-  <body>
-    <div id="content">
-      <h1>My Portfolio</h1>
-      <p>This is my portfolio.</p>
-      <p>Click here to get a random message:</p>
-      <button onclick="addRandomGreeting()">Hello</button>
-      <div id="greeting-container"></div>
-    </div>
+  <header>
+    <h1 id = "name">Dennis Willie</h1>
+    <ul>
+      <li><a href = "/index.html">ABOUT ME</a></li>
+      <li><a href = "/resume.html">RESUME</a></li>
+      <li><a href = "/projects.html">PROJECTS</a></li>
+      <li><a href = "/contact.html">CONTACT</a></li>
+    </ul>
+  </header>
+  <body onload="startTypingAnimation()">
+      <div class = "rectangles">
+        <div id = "rectangle1"></div>
+        <div id = "rectangle2"></div> 
+      </div>
+      <div class = "introductory">
+        <div id = "picturePlace">
+            <img id = "myPicture" src = "/images/profilePicture.jpg"></img>
+            <h1>Dennis Willie</h1>
+            <h3>STEP INTERN @ GOOGLE</h3>
+            <div id = "mediaLogos">
+                <ul>
+                    <li><a href = "www.facebook.com"><img src = "/favicons/facebook.png"></img></a></li>
+                    <li><a href = "www.instagram.com"><img src = "/favicons/instagram.png"></img></a></li>
+                    <li><a href = "www.linkedin.com"><img src = "/favicons/linkedin.png"></img></a></li>
+                    <li><a href = "www.twitter.com"><img src = "/favicons/twitter.png"></img></a></li>
+                    <li><a href = "www.whatsapp.com"><img src = "/favicons/whatsapp.png"></img></a></li>
+                </ul>    
+            </div>
+            
+        </div>
+        <div id = "shortProfile">
+            <h1 class = "typing"></h1>
+            <br>
+            <h3>Here's who I am and what I do</h3>
+            <br>
+            <br>
+            <div id = "button1">RESUME</div>
+            <div id = "button2">PROJECTS</div>
+            <p>My name is Dennis. I'm from Indonesia and currently studying in Ireland for my undergraduate degree in computer science.</p>
+        </div>
+      </div>
+      <footer id = "footerIndex">
+          <p>&copy; 2020 by Dennis Willie</p>
+      </footer>
+      <script src="typingAnimation.js"></script>
   </body>
 </html>
