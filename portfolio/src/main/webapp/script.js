@@ -1,34 +1,18 @@
-// Copyright 2019 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+const slidingDivs = document.querySelectorAll(".slide-in");
 
-var opacityDivs = document.querySelectorAll('.opacity-change');
+//add scroll event (the divs will appear on the window when it's on viewport)
+window.addEventListener("scroll", function(event){
+    slidingDivs.forEach(slidingDiv => {
+        const halfWayThrough = window.innerHeight + window.scrollY - slidingDiv.clientHeight / 2;
+        const isHalfWayThrough = halfWayThrough > slidingDiv.offsetTop;
+        const imageBottom = slidingDiv.offsetTop + slidingDiv.clientHeight;
+        const isNotPassed = imageBottom > window.scrollY;
 
-function checkOpacity(e){
-    
-    opacityDivs.forEach(opacityDiv => {
-
-        const opacityChangeAt = window.scrollY + window.innerHeight - opacityDiv.height/2;
-        const divBottom = opacityDiv.offsetTop + opacityDiv.height;
-        const isHalfShown = opacityChangeAt > opacityDiv.offsetTop;
-        const isNotScrolledPast = window.scrollY < divBottom;
-        if(isHalfShown && isNotScrolledPast){
-            opacityDiv.classList.add("active");
+        if(isHalfWayThrough && isNotPassed){
+            slidingDiv.classList.add("active");
         }
         else{
-            opacityDiv.classList.remove("active");
+            slidingDiv.classList.remove("active");
         }
-    });  
-}
-
-window.addEventListener("scroll", checkOpacity);
+    });
+});

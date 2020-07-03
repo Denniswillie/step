@@ -330,11 +330,20 @@ header ul li a {
     padding-left: 1em;
 }
 
-.opacity-change{
-    opacity: 0;
-    transition: all .6s;
+.hide-left{
+    transform: translateX(-50%);
 }
 
-.opacity-change.active{
+.hide-right{
+    transform: translateX(50%);
+}
+
+.slide-in{
+    opacity: 0;
+    transition: all .5s;
+}
+
+.active{
     opacity: 1;
+    transform: translateX(0%);
 }
