@@ -242,7 +242,7 @@ header ul li a {
     background-image: linear-gradient(-90deg, #c9b997, #decca6);
 }
 
-.central-scroll{
+.centralScroll{
     position: relative;
     width: 40%;
     margin: auto;
@@ -251,7 +251,7 @@ header ul li a {
     align-content: center;
 }
 
-.central-scroll h1{
+.centralScroll h1{
     text-align: center;
     font-size: 35px;
     font-family: PoppinsSemiBold;
@@ -260,7 +260,7 @@ header ul li a {
     padding-bottom: 2em;
 }
 
-.central-scroll h2{
+.centralScroll h2{
     text-align: left;
     font-size: 25px;
     font-family: PoppinsSemiBold;
@@ -277,7 +277,7 @@ header ul li a {
     position: relative;
 }
 
-.tickets-left{
+.ticketsLeft{
     width: 40%;
     margin-left: 1em;
     position: absolute;
@@ -286,28 +286,28 @@ header ul li a {
     margin-top: 2em;
 }
 
-.tickets-left h3{
+.ticketsLeft h3{
     color: blue;
     font-family: PoppinsSemiBold;
     font-weight: bold;
     font-size: 20px;
 }
 
-.tickets-left h4{
+.ticketsLeft h4{
     color: black;
     font-family: AvenirLight;
     font-weight: bold;
     font-size: 18px;
 }
 
-.tickets-left h5{
+.ticketsLeft h5{
     color: black;
     font-family: AvenirLight;
     font-weight: 400;
     font-size: 15px;
 }
 
-.tickets-right{
+.ticketsRight{
     float: right;
     width: 50%;
     height: 100%;
@@ -330,15 +330,15 @@ header ul li a {
     padding-left: 1em;
 }
 
-.hide-left{
+.hideLeft{
     transform: translateX(-50%);
 }
 
-.hide-right{
+.hideRight{
     transform: translateX(50%);
 }
 
-.slide-in{
+.slideIn{
     opacity: 0;
     transition: all .5s;
 }
