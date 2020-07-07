@@ -242,11 +242,15 @@ header ul li a {
     background-image: linear-gradient(-90deg, #c9b997, #decca6);
 }
 
+.recommendationsBody{
+    background-image: linear-gradient(-90deg, #c9b997, #decca6);
+    padding-top: 5em;
+}
+
 .centralScroll{
     position: relative;
     width: 40%;
     margin: auto;
-    height: 140em;
     color: black;
     align-content: center;
 }
@@ -346,4 +350,8 @@ header ul li a {
 .active{
     opacity: 1;
     transform: translateX(0%);
+}
+
+.form-group{
+    font-family: AvenirLight;
 }

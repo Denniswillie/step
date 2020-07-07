@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+  </head>
+  <header>
+    <h1 id = "name">Dennis Willie</h1>
+    <ul>
+      <li><a href = "/index.html">ABOUT ME</a></li>
+      <li><a href = "/resume.html">RESUME</a></li>
+      <li><a href = "/projects.html">PROJECTS</a></li>
+      <li><a href = "/recommendations.html">RECOMMENDATIONS</a></li>
+      <li><a href = "/contact.html">CONTACT</a></li>
+    </ul>
+  </header>
+  <body class = "recommendationsBody" onload = "fetchFromData()">
+      <div class = "centralScroll specialScroll" style = "padding-bottom: 1em;margin-top: 4em;">
+
+      <h1 style = "padding-top: 2em;">Recommendations</h1>
+
+      <form action = "/data" method = "POST">
+        <div class="form-group">
+            <label for="exampleFormControlInput1">What's your name?</label>
+            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Your name" name = "name">
+        </div>
+        <div class="form-group">
+            <label for="exampleFormControlInput1">What's your relationship with Dennis?</label>
+            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Your relationship with Dennis" name = "relationship">
+        </div>
+        <div class="form-group" >
+            <label for="exampleFormControlTextarea1">Tell your experience working with Dennis!</label>
+            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name = "comment"></textarea>
+            <br>
+            <button type="submit" style = "background: #030bfc;" class="btn btn-primary mb-2">Submit</button>
+        </div>
+      </form>
+          
+              
+          </div>
+      
+
+      <footer id = "footerResume">
+          <p>&copy; 2020 by Dennis Willie</p>
+      </footer>
+      <script src="script.js"></script>
+  </body>
+</html>
