@@ -11,6 +11,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.sps.data.Recommendation;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
@@ -28,8 +29,15 @@ public class LoadRecommendation extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
+    //Parse query string from request url
+    String queryString = request.getQueryString();
+    int maxNumberOfRecommendations = maxNumberOfRecommendations(queryString);
+
     List<Recommendation> recommendations = new ArrayList<>();
     for (Entity entity : results.asIterable()) {
+      if(recommendations.size() >= maxNumberOfRecommendations){
+          break;
+      }
       long id = entity.getKey().getId();
       String name = (String) entity.getProperty("name");
       String relationship = (String) entity.getProperty("relationship");
@@ -44,5 +52,10 @@ public class LoadRecommendation extends HttpServlet {
 
     response.setContentType("application/json;");
     response.getWriter().println(gson.toJson(recommendations));
+  }
+
+  public int maxNumberOfRecommendations(String queryString){
+      String keyValuePair[] = queryString.split("=");
+      return Integer.parseInt(keyValuePair[1]);
   }
 }
