@@ -49,3 +49,7 @@ function deleteRecommendation(recommendation) {
   params.append('id', recommendation.id);
   fetch('/delete-recommendation', {method: 'POST', body: params});
 }
+
+function haha(){
+    console.log("gaga");
+}
