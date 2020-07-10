@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.sps.data.Recommendation;
+import com.google.sps.data.FetchedData;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,10 +33,6 @@ public class LoadRecommendation extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
-    //Parse query string from request url
-    // String queryString = request.getQueryString();
-    // int maxNumberOfRecommendations = maxNumberOfRecommendations(queryString);
-
     List<Recommendation> recommendations = new ArrayList<>();
     for (Entity entity : results.asIterable()) {
       if(recommendations.size() >= maxNumberOfRecommendations){
@@ -51,17 +48,13 @@ public class LoadRecommendation extends HttpServlet {
       recommendations.add(recommendation);
     }
 
+    FetchedData fetchedData = new FetchedData(recommendations, this.maxNumberOfRecommendations);
+
     Gson gson = new Gson();
 
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(recommendations));
+    response.getWriter().println(gson.toJson(fetchedData));
   }
-
-//  parsing integer from query string
-//   public int maxNumberOfRecommendations(String queryString){
-//       String keyValuePair[] = queryString.split("=");
-//       return Integer.parseInt(keyValuePair[1]);
-//   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {

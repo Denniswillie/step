@@ -1,12 +1,16 @@
 var maxNumberofRecommendationsDisplayed = 0;
 
 function loadRecommendations() {
-  fetch('/load-recommendation').then(response => response.json()).then((recommendations) => {
+
+  fetch('/load-recommendation').then(response => response.json()).then((fetchedData) => {
     const scrollElement = document.querySelector(".specialScroll");
-    recommendations.forEach((recommendation) => {
+    fetchedData.recommendationsList.forEach((recommendation) => {
       scrollElement.appendChild(createRecommendationElement(recommendation));
     })
+    
+    document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
   });
+
 }
 
 function createRecommendationElement(recommendation) {

@@ -11,4 +11,21 @@ public class Recommendation{
         this.relationship = relationship;
         this.comment = comment;
     }
+
+    public long getId(){
+        return this.id;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public String getRelationship(){
+        return this.relationship;
+    }
+
+    public String getComment(){
+        return this.comment;
+    }
+
 }
