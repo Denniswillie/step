@@ -15,15 +15,12 @@ public class Recommendation{
     public long getId(){
         return this.id;
     }
-
     public String getName(){
         return this.name;
     }
-
     public String getRelationship(){
         return this.relationship;
     }
-
     public String getComment(){
         return this.comment;
     }
