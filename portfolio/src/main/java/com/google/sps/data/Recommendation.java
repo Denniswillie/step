@@ -17,10 +17,10 @@ public class Recommendation{
     public String getName(){
         return this.name;
     }
-    public String getrelationship(){
+    public String getRelationship(){
         return this.relationship;
     }
-    public String getcomment(){
+    public String getComment(){
         return this.comment;
     }
 }
