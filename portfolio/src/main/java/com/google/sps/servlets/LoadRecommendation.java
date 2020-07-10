@@ -22,6 +22,9 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/load-recommendation")
 public class LoadRecommendation extends HttpServlet {
 
+    //maximum number of recommendations
+    private int maxNumberOfRecommendations = 0;
+
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Query query = new Query("Recommendation").addSort("timestamp", SortDirection.DESCENDING);
@@ -30,8 +33,8 @@ public class LoadRecommendation extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
 
     //Parse query string from request url
-    String queryString = request.getQueryString();
-    int maxNumberOfRecommendations = maxNumberOfRecommendations(queryString);
+    // String queryString = request.getQueryString();
+    // int maxNumberOfRecommendations = maxNumberOfRecommendations(queryString);
 
     List<Recommendation> recommendations = new ArrayList<>();
     for (Entity entity : results.asIterable()) {
@@ -54,8 +57,17 @@ public class LoadRecommendation extends HttpServlet {
     response.getWriter().println(gson.toJson(recommendations));
   }
 
-  public int maxNumberOfRecommendations(String queryString){
-      String keyValuePair[] = queryString.split("=");
-      return Integer.parseInt(keyValuePair[1]);
+//  parsing integer from query string
+//   public int maxNumberOfRecommendations(String queryString){
+//       String keyValuePair[] = queryString.split("=");
+//       return Integer.parseInt(keyValuePair[1]);
+//   }
+
+  @Override
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    
+      this.maxNumberOfRecommendations = Integer.parseInt(request.getParameter("maxNumberofRecommendationsDisplayed"));
+      response.sendRedirect("/recommendations.html");
+
   }
 }

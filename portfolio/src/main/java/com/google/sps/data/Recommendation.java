@@ -1,10 +1,10 @@
 package com.google.sps.data;
 
 public class Recommendation{
-    public long id;
-    public String name;
-    public String relationship;
-    public String comment;
+    private final long id;
+    private final String name;
+    private final String relationship;
+    private final String comment;
     public Recommendation(long id, String name, String relationship, String comment){
         this.id = id;
         this.name = name;

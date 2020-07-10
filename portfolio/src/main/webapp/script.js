@@ -1,3 +1,5 @@
+var maxNumberofRecommendationsDisplayed = 0;
+
 function loadRecommendations() {
   fetch('/load-recommendation').then(response => response.json()).then((recommendations) => {
     const scrollElement = document.querySelector(".specialScroll");
@@ -48,8 +50,4 @@ function deleteRecommendation(recommendation) {
   const params = new URLSearchParams();
   params.append('id', recommendation.id);
   fetch('/delete-recommendation', {method: 'POST', body: params});
-}
-
-function haha(){
-    console.log("gaga");
 }
