@@ -27,5 +27,4 @@ public class Recommendation{
     public String getComment(){
         return this.comment;
     }
-
 }
