@@ -33,6 +33,10 @@ public class LoadRecommendation extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
+    if(request.getQueryString() != null){
+        this.maxNumberOfRecommendations = Integer.parseInt(request.getQueryString());
+    }
+
     List<Recommendation> recommendations = new ArrayList<>();
     for (Entity entity : results.asIterable()) {
       if(recommendations.size() >= maxNumberOfRecommendations){
@@ -54,13 +58,5 @@ public class LoadRecommendation extends HttpServlet {
 
     response.setContentType("application/json;");
     response.getWriter().println(gson.toJson(fetchedData));
-  }
-
-  @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    
-      this.maxNumberOfRecommendations = Integer.parseInt(request.getParameter("maxNumberofRecommendationsDisplayed"));
-      response.sendRedirect("/recommendations.html");
-
   }
 }

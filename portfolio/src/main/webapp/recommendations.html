@@ -39,14 +39,11 @@
         </div>
       </form>
       <br>
-      <form action = "/load-recommendation" method = "POST">
         <div class="form-group">
-            <label for="exampleFormControlInput1">Enter maximum number of comments would you like to be displayed</label>
-            <input type="number" class="form-control maxNumberOfRecommendationsDisplayed" id="exampleFormControlInput1" placeholder="Max number of comments displayed" name = "maxNumberofRecommendationsDisplayed" min = "0">
+            <label for="exampleFormControlInput1">Maximum number of comments you would like to be displayed</label>
+            <input type="number" class="form-control maxNumberOfRecommendationsDisplayed" onchange = "inputChangeHandling()" id="exampleFormControlInput1" placeholder="Max number of comments displayed" name = "maxNumberofRecommendationsDisplayed" min = "0">
             <br>
-            <button type="submit" style = "background: #030bfc;" class="btn btn-primary mb-2">Submit</button>
         </div>
-      </form>
               
           </div>
       
