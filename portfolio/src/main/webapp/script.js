@@ -1,27 +1,27 @@
 function inputChangeHandling(){
-    console.log(document.querySelector(".maxNumberOfRecommendationsDisplayed").value);
     loadRecommendations(document.querySelector(".maxNumberOfRecommendationsDisplayed").value);
 }
 
 function loadRecommendations(queryString) {
+
     var queryParams = "";
     if(queryString){
-        queryParams = queryParams + "?" + queryString;
+        queryParams = queryParams + "?max=" + queryString;
     }
 
-  fetch('/load-recommendation' + queryParams).then(response => response.json()).then((fetchedData) => {
+  fetch('/load-recommendations' + queryParams).then(response => response.json()).then((fetchedData) => {
     const scrollElement = document.querySelector(".specialScroll");
 
-    document.querySelectorAll('.tickets').forEach(function(a){
-        a.remove()
+    document.querySelectorAll('.tickets').forEach(function(recommendationDiv){
+        recommendationDiv.remove()
     })
     
     fetchedData.recommendationsList.forEach((recommendation) => {
       scrollElement.appendChild(createRecommendationElement(recommendation));
     })
     
-    
     document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
+    
   
   });
 

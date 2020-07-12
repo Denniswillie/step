@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.sps.data.Recommendation;
-import com.google.sps.data.FetchedData;
+import com.google.sps.data.RecommendationsResponse;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,11 +20,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/load-recommendation")
-public class LoadRecommendation extends HttpServlet {
+@WebServlet("/load-recommendations")
+public class LoadRecommendations extends HttpServlet {
 
-    //maximum number of recommendations
-    private int maxNumberOfRecommendations = 0;
+  private int maxNumberOfRecommendations = 0;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -34,7 +33,7 @@ public class LoadRecommendation extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
 
     if(request.getQueryString() != null){
-        this.maxNumberOfRecommendations = Integer.parseInt(request.getQueryString());
+        maxNumberOfRecommendations = queryStringParser(request.getQueryString());
     }
 
     List<Recommendation> recommendations = new ArrayList<>();
@@ -52,11 +51,16 @@ public class LoadRecommendation extends HttpServlet {
       recommendations.add(recommendation);
     }
 
-    FetchedData fetchedData = new FetchedData(recommendations, this.maxNumberOfRecommendations);
+    RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations);
 
     Gson gson = new Gson();
 
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(fetchedData));
+    response.getWriter().println(gson.toJson(recommendationsResponse));
+  }
+
+  public int queryStringParser(String queryString){
+      String keyValuePair[] = queryString.split("=");
+      return Integer.parseInt(keyValuePair[1]);
   }
 }
