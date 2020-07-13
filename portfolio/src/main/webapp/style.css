@@ -356,3 +356,15 @@ header ul li a {
 .form-group{
     font-family: AvenirLight;
 }
+
+.loginH1{
+    margin-bottom: 10em;
+}
+
+.logoutText{
+    padding-top: 2em;
+}
+
+#recommendationButton, #logoutButton{
+    display: inline-block;
+}
