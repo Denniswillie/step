@@ -31,7 +31,6 @@ public class CreateRecommendation extends HttpServlet {
     String relationship = request.getParameter("relationship");
     String comment = request.getParameter("comment");
     String email = userService.getCurrentUser().getEmail();
-    System.out.print(email);
     long timestamp = System.currentTimeMillis();
 
     Entity recommendationEntity = new Entity("Recommendation");
