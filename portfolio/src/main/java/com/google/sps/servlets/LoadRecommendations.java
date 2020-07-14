@@ -9,8 +9,10 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.sps.data.Recommendation;
+import com.google.sps.data.RecommendationsResponse;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
@@ -18,8 +20,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/load-recommendation")
-public class LoadRecommendation extends HttpServlet {
+@WebServlet("/load-recommendations")
+public class LoadRecommendations extends HttpServlet {
+
+  private int maxNumberOfRecommendations = 0;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -28,8 +32,15 @@ public class LoadRecommendation extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
+    if(request.getQueryString() != null){
+        maxNumberOfRecommendations = queryStringParser(request.getQueryString());
+    }
+
     List<Recommendation> recommendations = new ArrayList<>();
     for (Entity entity : results.asIterable()) {
+      if(recommendations.size() >= maxNumberOfRecommendations){
+          break;
+      }
       long id = entity.getKey().getId();
       String name = (String) entity.getProperty("name");
       String relationship = (String) entity.getProperty("relationship");
@@ -40,9 +51,16 @@ public class LoadRecommendation extends HttpServlet {
       recommendations.add(recommendation);
     }
 
+    RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations);
+
     Gson gson = new Gson();
 
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(recommendations));
+    response.getWriter().println(gson.toJson(recommendationsResponse));
+  }
+
+  public int queryStringParser(String queryString){
+      String keyValuePair[] = queryString.split("=");
+      return Integer.parseInt(keyValuePair[1]);
   }
 }

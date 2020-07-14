@@ -1,10 +1,30 @@
-function loadRecommendations() {
-  fetch('/load-recommendation').then(response => response.json()).then((recommendations) => {
+function inputChangeHandling(){
+    loadRecommendations(document.querySelector(".maxNumberOfRecommendationsDisplayed").value);
+}
+
+function loadRecommendations(queryString) {
+
+    var queryParams = "";
+    if(queryString){
+        queryParams = queryParams + "?max=" + queryString;
+    }
+
+  fetch('/load-recommendations' + queryParams).then(response => response.json()).then((fetchedData) => {
     const scrollElement = document.querySelector(".specialScroll");
-    recommendations.forEach((recommendation) => {
+
+    document.querySelectorAll('.tickets').forEach(function(recommendationDiv){
+        recommendationDiv.remove()
+    })
+    
+    fetchedData.recommendationsList.forEach((recommendation) => {
       scrollElement.appendChild(createRecommendationElement(recommendation));
     })
+    
+    document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
+    
+  
   });
+
 }
 
 function createRecommendationElement(recommendation) {

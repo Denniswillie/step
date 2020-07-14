@@ -11,6 +11,7 @@ public class Recommendation{
         this.relationship = relationship;
         this.comment = comment;
     }
+
     public long getId(){
         return this.id;
     }

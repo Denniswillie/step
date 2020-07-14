@@ -23,20 +23,26 @@
 
       <form action = "/create-recommendation" method = "POST">
         <div class="form-group">
-            <label for="exampleFormControlInput1">What's your name?</label>
-            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Your name" name = "name" required>
+            <label>What's your name?</label>
+            <input type="text" class="form-control" placeholder="Your name" name = "name" required>
         </div>
         <div class="form-group">
-            <label for="exampleFormControlInput1">What's your relationship with Dennis?</label>
-            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Your relationship with Dennis" name = "relationship" required>
+            <label>What's your relationship with Dennis?</label>
+            <input type="text" class="form-control" placeholder="Your relationship with Dennis" name = "relationship" required>
         </div>
         <div class="form-group" >
-            <label for="exampleFormControlTextarea1">Tell your experience working with Dennis!</label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name = "comment" required></textarea>
+            <label>Tell your experience working with Dennis!</label>
+            <textarea class="form-control" rows="3" name = "comment" required></textarea>
             <br>
-            <button type="submit" style = "background: #030bfc;" class="btn btn-primary mb-2">Submit</button>
+            <button type="submit" style = "background: #030bfc;" id = "createRecommendationButton" class="btn btn-primary mb-2">Submit</button>
         </div>
       </form>
+      <br>
+        <div class="form-group">
+            <label>Maximum number of comments you would like to be displayed</label>
+            <input type="number" class="form-control maxNumberOfRecommendationsDisplayed" onchange = "inputChangeHandling()" placeholder="Max number of comments displayed" name = "maxNumberofRecommendationsDisplayed" min = "0">
+            <br>
+        </div>
               
           </div>
       
