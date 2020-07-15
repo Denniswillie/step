@@ -22,10 +22,22 @@ import com.google.appengine.api.users.UserServiceFactory;
 @WebServlet("/create-recommendation")
 public class CreateRecommendation extends HttpServlet {
 
+  private final UserService userService;
+  private final DatastoreService dataStoreService;
+
+  //for production
+  public CreateRecommendation(){
+      userService = UserServiceFactory.getUserService();
+  }
+
+  //for testing
+  public CreateRecommendation(UserService userService, DatastoreService dataStoreService){
+      this.userService = userService;
+      this.dataStoreService = dataStoreService;
+  }
+
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    
-    UserService userService = UserServiceFactory.getUserService();
     
     String name = request.getParameter("name");
     String relationship = request.getParameter("relationship");
@@ -46,3 +58,6 @@ public class CreateRecommendation extends HttpServlet {
     response.sendRedirect("/recommendations.html");
   }
 }
+
+//test datastore has the correct value
+//test whether it redirects correctly or not
