@@ -10,18 +10,32 @@ function loadRecommendations(queryString) {
     }
 
   fetch('/load-recommendations' + queryParams).then(response => response.json()).then((fetchedData) => {
+    
     const scrollElement = document.querySelector(".specialScroll");
+    
+    if(fetchedData.isLoggedIn){
+    
+        document.querySelectorAll('.tickets').forEach(recommendationDiv => recommendationDiv.remove());
+    
+        fetchedData.recommendationsList.forEach((recommendation) => {
+            scrollElement.appendChild(createRecommendationElement(recommendation));
+        })
+    
+        document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
+        
+        document.getElementById("logoutButton").onclick = function(){
+            location.href = fetchedData.url;
+        }
+    }
 
-    document.querySelectorAll('.tickets').forEach(function(recommendationDiv){
-        recommendationDiv.remove()
-    })
-    
-    fetchedData.recommendationsList.forEach((recommendation) => {
-      scrollElement.appendChild(createRecommendationElement(recommendation));
-    })
-    
-    document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
-    
+    else{
+        
+        scrollElement.querySelectorAll('*').forEach(childNode => childNode.remove());
+        const loginText = document.createElement("h1");
+        loginText.setAttribute('class', 'loginH1');
+        loginText.innerHTML = "<a href = '" + fetchedData.url + "'>Login here to view and input recommendations</a>"
+        scrollElement.appendChild(loginText);
+    }
   
   });
 
@@ -33,6 +47,7 @@ function createRecommendationElement(recommendation) {
   const ticketsLeftDiv = document.createElement("div");
   const h3Element = document.createElement("h3");
   const h4Element = document.createElement("h4");
+  const emailElement = document.createElement("h4");
   ticketsDiv.setAttribute('class', 'tickets');
   ticketsRightDiv.setAttribute('class', 'ticketsRight');
   ticketsLeftDiv.setAttribute('class', 'ticketsLeft');
@@ -41,8 +56,10 @@ function createRecommendationElement(recommendation) {
   h3Element.style.marginTop = '1em';
   h3Element.style.marginTop = '2em';
   h4Element.innerText = recommendation.relationship;
+  emailElement.innerText = recommendation.email;
   ticketsLeftDiv.appendChild(h3Element);
   ticketsLeftDiv.appendChild(h4Element);
+  ticketsLeftDiv.appendChild(emailElement);
 
   ticketsDiv.appendChild(ticketsLeftDiv);
 

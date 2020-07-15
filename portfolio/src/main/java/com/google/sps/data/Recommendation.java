@@ -5,23 +5,29 @@ public class Recommendation{
     private final String name;
     private final String relationship;
     private final String comment;
-    public Recommendation(long id, String name, String relationship, String comment){
+    private final String email;
+    public Recommendation(long id, String name, String relationship, String comment, String email){
         this.id = id;
         this.name = name;
         this.relationship = relationship;
         this.comment = comment;
+        this.email = email;
     }
 
     public long getId(){
-        return this.id;
+        return id;
     }
     public String getName(){
-        return this.name;
+        return name;
     }
     public String getRelationship(){
-        return this.relationship;
+        return relationship;
     }
     public String getComment(){
-        return this.comment;
+        return comment;
+    }
+
+    public String getEmail(){
+        return email;
     }
 }
