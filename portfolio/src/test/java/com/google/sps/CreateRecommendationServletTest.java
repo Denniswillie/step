@@ -28,9 +28,17 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
     private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
     
+    public void login(String username, String domain, boolean isAdmin) {
+        helper.setEnvAuthDomain(domain);
+        helper.setEnvEmail(username + "@" + domain);
+        helper.setEnvIsLoggedIn(true);
+        helper.setEnvIsAdmin(isAdmin);
+    }
+
     @Before
     public void setUp() {
         helper.setUp();
+        login("denniswillie", "google.com", true);
     }
 
     @Test
@@ -39,16 +47,17 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
         // create mock objects
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
-        UserService userService = mock(UserService.class);
 
         //create datastore
         DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+
+        //create userservice
+        UserService userService = UserServiceFactory.getUserService();
 
         //stubbing
         when(request.getParameter("name")).thenReturn("Dennis");
         when(request.getParameter("relationship")).thenReturn("Myself");
         when(request.getParameter("comment")).thenReturn("I have very tiny legs");
-        when(userService.getCurrentUser().getEmail()).thenReturn("denniswillie@google.com");
 
         //create servlet and call doPost method
         CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
@@ -60,7 +69,8 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
         
         //assert that the datastore has 1 entity with the kind name = "Recommendation"
         assertEquals(1, dataStoreService.prepare(new Query("Recommendation")).countEntities(FetchOptions.Builder.withLimit(10)));
-    
+
+        
     }
 
     // @Test

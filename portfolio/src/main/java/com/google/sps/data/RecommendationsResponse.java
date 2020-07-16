@@ -7,19 +7,19 @@ public class RecommendationsResponse{
     private final List<Recommendation> recommendationsList;
     private final int maxNumberofRecommendationsDisplayed;
     private final boolean isLoggedIn;
-    private final String url;
+    private final String urlForLoginOrLogout;
 
-    public RecommendationsResponse(List<Recommendation> recommendationsList, int maxNumberofRecommendationsDisplayed, boolean isLoggedIn, String url){
+    public RecommendationsResponse(List<Recommendation> recommendationsList, int maxNumberofRecommendationsDisplayed, boolean isLoggedIn, String urlForLoginOrLogout){
         this.recommendationsList = recommendationsList;
         this.maxNumberofRecommendationsDisplayed = maxNumberofRecommendationsDisplayed;
         this.isLoggedIn = isLoggedIn;
-        this.url = url;
+        this.urlForLoginOrLogout = urlForLoginOrLogout;
     }
 
     public List<Recommendation> getRecommendationsList(){
         return recommendationsList;
     }
-
+    
     public int getMaxNumberofRecommendationsDisplayed(){
         return maxNumberofRecommendationsDisplayed;
     }
@@ -28,7 +28,7 @@ public class RecommendationsResponse{
         return isLoggedIn;
     }
 
-    public String getURL(){
-        return url;
+    public String getURLforLoginOrLogout(){
+        return urlForLoginOrLogout;
     }
 }

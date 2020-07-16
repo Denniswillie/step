@@ -59,14 +59,9 @@ public class LoadRecommendationsServlet extends HttpServlet {
         recommendations.add(recommendation);
     }
 
-    if(userService.isUserLoggedIn()){
-        RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, true, userService.createLogoutURL("/recommendations.html"));
-        response.getWriter().println(gson.toJson(recommendationsResponse));
-    }
-    else{
-        RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, false, userService.createLoginURL("/recommendations.html"));
-        response.getWriter().println(gson.toJson(recommendationsResponse));
-    }
+    String urlForLoginOrLogout = userService.isUserLoggedIn() ? userService.createLogoutURL() : userService.createLoginURL();
+    RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, userService.isUserLoggedIn(), urlForLoginOrLogout);
+    response.getWriter().println(gson.toJson(recommendationsResponse)); 
 
   }
 
