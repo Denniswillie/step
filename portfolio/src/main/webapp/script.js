@@ -13,6 +13,7 @@ function loadRecommendations(queryString) {
     
     const scrollElement = document.querySelector(".specialScroll");
     
+    //if user is logged in
     if(fetchedData.isLoggedIn){
     
         document.querySelectorAll('.tickets').forEach(recommendationDiv => recommendationDiv.remove());
@@ -28,6 +29,7 @@ function loadRecommendations(queryString) {
         }
     }
 
+    //if user is not logged in, comment form will be hidden
     else{
         
         scrollElement.querySelectorAll('*').forEach(childNode => childNode.remove());

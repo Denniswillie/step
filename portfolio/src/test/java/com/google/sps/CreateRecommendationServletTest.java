@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,8 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.api.users.UserService;
@@ -52,11 +51,13 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
     @Before
     public void setUp() {
         helper.setUp();
-        login("denniswillie", "google.com", true);
     }
 
+    //test if datastore has correct data when user is logged in
     @Test
-    public void dataStoreHasCorrectDataTest() throws IOException {
+    public void dataStoreHasCorrectDataIfLoggedInTest() throws IOException {
+
+        login("denniswillie", "google.com", true);//true indicates user is an admin
 
         // create mock objects
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -64,9 +65,6 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
 
         //create datastore
         DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-
-        //create userservice
-        UserService userService = UserServiceFactory.getUserService();
 
         //stubbing
         when(request.getParameter("name")).thenReturn("Dennis");
@@ -81,15 +79,86 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
         Query testQuery = new Query("Recommendation");
         PreparedQuery testResult = dataStoreService.prepare(testQuery);
         
-        //assert that the datastore has 1 entity with the kind name = "Recommendation"
-        assertEquals(1, dataStoreService.prepare(new Query("Recommendation")).countEntities(FetchOptions.Builder.withLimit(10)));
+        //assert that the datastore has 1 entity with the kind name = "Recommendation" with all the properties
+        Gson gson = new Gson();
+        String testObject = gson.toJson(testResult.asSingleEntity());
+        System.out.println(testObject);
+        Assert.assertTrue(testObject.contains("\"name\":\"Dennis\"")&&
+                        testObject.contains("\"comment\":\"I have very tiny legs\"")&&
+                        testObject.contains("\"relationship\":\"Myself\"")&&
+                        testObject.contains("\"email\":\"denniswillie@google.com\""));
 
-        
     }
 
-    // @Test
-    // public void responseRedirectTest(){
+    //assert datastore doesn't have any entities if user is logged out
+    @Test
+    public void dataStoreHasNoEntitiesIfLoggedOutTest() throws IOException {
 
+        // create mock objects
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        //create datastore
+        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+
+        //stubbing
+        when(request.getParameter("name")).thenReturn("Dennis");
+        when(request.getParameter("relationship")).thenReturn("Myself");
+        when(request.getParameter("comment")).thenReturn("I have very tiny legs");
+
+        //create servlet and call doPost method
+        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
+        createRecommendationServlet.doPost(request, response);
+
+        //create and send query to database
+        Query testQuery = new Query("Recommendation");
+        PreparedQuery testResult = dataStoreService.prepare(testQuery);
+        
+        //assert that the datastore has no entity 
+        Assert.assertEquals(0, testResult.countEntities(FetchOptions.Builder.withLimit(10)));
+    }
+
+
+    @Test
+    public void responseRedirectIfLoggedInTest() throws IOException{
+        login("denniswillie", "google.com", true);//true indicates user is an admin
+
+        // create mock objects
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        //create datastore
+        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+
+        //stubbing
+        when(request.getParameter("name")).thenReturn("Dennis");
+        when(request.getParameter("relationship")).thenReturn("Myself");
+        when(request.getParameter("comment")).thenReturn("I have very tiny legs");
+
+        //create servlet and call doPost method
+        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
+        createRecommendationServlet.doPost(request, response);
+    }    
+
+    // @Test
+    // public void responseRedirectIfLoggedOutTest() throws IOException{
+    //     login("denniswillie", "google.com", true);//true indicates user is an admin
+
+    //     // create mock objects
+    //     HttpServletRequest request = mock(HttpServletRequest.class);
+    //     HttpServletResponse response = mock(HttpServletResponse.class);
+
+    //     //create datastore
+    //     DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+
+    //     //stubbing
+    //     when(request.getParameter("name")).thenReturn("Dennis");
+    //     when(request.getParameter("relationship")).thenReturn("Myself");
+    //     when(request.getParameter("comment")).thenReturn("I have very tiny legs");
+
+    //     //create servlet and call doPost method
+    //     CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
+    //     createRecommendationServlet.doPost(request, response);
     // }    
 
     // @Test
