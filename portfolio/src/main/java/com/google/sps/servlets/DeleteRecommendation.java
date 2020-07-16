@@ -27,5 +27,6 @@ public class DeleteRecommendation extends HttpServlet {
     Key recommendationEntityKey = KeyFactory.createKey("Recommendation", id);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.delete(recommendationEntityKey);
+    response.sendRedirect("/recommendations.html");
   }
 }
