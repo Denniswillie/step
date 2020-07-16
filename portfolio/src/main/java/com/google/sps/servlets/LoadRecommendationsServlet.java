@@ -23,7 +23,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
 @WebServlet("/load-recommendations")
-public class LoadRecommendations extends HttpServlet {
+public class LoadRecommendationsServlet extends HttpServlet {
 
   private int maxNumberOfRecommendations = 0;
 

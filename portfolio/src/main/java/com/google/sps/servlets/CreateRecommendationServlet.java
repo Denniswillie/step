@@ -20,18 +20,19 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
 @WebServlet("/create-recommendation")
-public class CreateRecommendation extends HttpServlet {
+public class CreateRecommendationServlet extends HttpServlet {
 
   private final UserService userService;
   private final DatastoreService dataStoreService;
 
   //for production
-  public CreateRecommendation(){
+  public CreateRecommendationServlet(){
       userService = UserServiceFactory.getUserService();
+      dataStoreService = DatastoreServiceFactory.getDatastoreService();
   }
 
   //for testing
-  public CreateRecommendation(UserService userService, DatastoreService dataStoreService){
+  public CreateRecommendationServlet(UserService userService, DatastoreService dataStoreService){
       this.userService = userService;
       this.dataStoreService = dataStoreService;
   }
@@ -52,8 +53,7 @@ public class CreateRecommendation extends HttpServlet {
     recommendationEntity.setProperty("email", email);
     recommendationEntity.setProperty("timestamp", timestamp);
 
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(recommendationEntity);
+    dataStoreService.put(recommendationEntity);
 
     response.sendRedirect("/recommendations.html");
   }
