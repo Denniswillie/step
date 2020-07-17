@@ -16,6 +16,7 @@ package com.google.sps.data;
 
 import com.google.sps.data.Recommendation;
 import java.util.List;
+import java.util.ArrayList;
 
 public class RecommendationsResponse{
     private final List<Recommendation> recommendationsList;
@@ -26,6 +27,13 @@ public class RecommendationsResponse{
     public RecommendationsResponse(List<Recommendation> recommendationsList, int maxNumberofRecommendationsDisplayed, boolean isLoggedIn, String urlForLoginOrLogout){
         this.recommendationsList = recommendationsList;
         this.maxNumberofRecommendationsDisplayed = maxNumberofRecommendationsDisplayed;
+        this.isLoggedIn = isLoggedIn;
+        this.urlForLoginOrLogout = urlForLoginOrLogout;
+    }
+
+    public RecommendationsResponse(boolean isLoggedIn, String urlForLoginOrLogout){
+        this.recommendationsList = new ArrayList<Recommendation>();
+        this.maxNumberofRecommendationsDisplayed = 0;
         this.isLoggedIn = isLoggedIn;
         this.urlForLoginOrLogout = urlForLoginOrLogout;
     }

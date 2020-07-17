@@ -40,6 +40,20 @@ import com.google.appengine.api.users.UserServiceFactory;
 public class LoadRecommendationsServlet extends HttpServlet {
 
   private int maxNumberOfRecommendations = 0;
+  private final DatastoreService dataStoreService;
+  private final UserService userService;
+
+  //for testing
+  public LoadRecommendationsServlet(DatastoreService dataStoreService, UserService userService){
+    this.dataStoreService = dataStoreService;
+    this.userService = userService;
+  } 
+
+  //for production
+  public LoadRecommendationsServlet(){
+      dataStoreService = DatastoreServiceFactory.getDatastoreService();
+      userService = UserServiceFactory.getUserService();
+  }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -47,36 +61,39 @@ public class LoadRecommendationsServlet extends HttpServlet {
     Gson gson = new Gson();
     response.setContentType("application/json;");
     
-    UserService userService = UserServiceFactory.getUserService();
-    
-    Query query = new Query("Recommendation").addSort("timestamp", SortDirection.DESCENDING);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery results = datastore.prepare(query);
-
-    if(request.getQueryString() != null){
-        maxNumberOfRecommendations = queryStringParser(request.getQueryString());
+    //user is not logged in, then will send login url without reading from database
+    if(!userService.isUserLoggedIn()){
+        RecommendationsResponse recommendationsResponse = new RecommendationsResponse(false, userService.createLoginURL("/recommendations.html"));
+        response.getWriter().println(gson.toJson(recommendationsResponse)); 
     }
-    
-    List<Recommendation> recommendations = new ArrayList<>();
-    for (Entity entity : results.asIterable()) {
-        if(recommendations.size() >= maxNumberOfRecommendations){
-            break;
+
+    else{
+        Query query = new Query("Recommendation").addSort("timestamp", SortDirection.DESCENDING);
+        PreparedQuery results = dataStoreService.prepare(query);
+
+        if(request.getQueryString() != null){
+            maxNumberOfRecommendations = queryStringParser(request.getQueryString());
         }
-        long id = entity.getKey().getId();
-        String name = (String) entity.getProperty("name");
-        String relationship = (String) entity.getProperty("relationship");
-        String comment = (String) entity.getProperty("comment");
-        String email = (String) entity.getProperty("email");
-        long timestamp = (long) entity.getProperty("timestamp");
 
-        Recommendation recommendation = new Recommendation(id, name, relationship, comment, email);
-        recommendations.add(recommendation);
+        List<Recommendation> recommendations = new ArrayList<>();
+        for (Entity entity : results.asIterable()) {
+            if(recommendations.size() >= maxNumberOfRecommendations){
+                break;
+            }
+            long id = entity.getKey().getId();
+            String name = (String) entity.getProperty("name");
+            String relationship = (String) entity.getProperty("relationship");
+            String comment = (String) entity.getProperty("comment");
+            String email = (String) entity.getProperty("email");
+            long timestamp = (long) entity.getProperty("timestamp");
+
+            Recommendation recommendation = new Recommendation(id, name, relationship, comment, email);
+            recommendations.add(recommendation);
+        }
+
+        RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, true, userService.createLogoutURL("/recommendations.html"));
+        response.getWriter().println(gson.toJson(recommendationsResponse)); 
     }
-
-    String urlForLoginOrLogout = userService.isUserLoggedIn() ? userService.createLogoutURL("/recommendations.html") : userService.createLoginURL("/recommendations.html");
-    RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, userService.isUserLoggedIn(), urlForLoginOrLogout);
-    response.getWriter().println(gson.toJson(recommendationsResponse)); 
-
   }
 
   public int queryStringParser(String queryString){

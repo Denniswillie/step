@@ -16,30 +16,43 @@ function loadRecommendations(queryString) {
     //if user is logged in
     if(fetchedData.isLoggedIn){
     
-        document.querySelectorAll('.tickets').forEach(recommendationDiv => recommendationDiv.remove());
-    
-        fetchedData.recommendationsList.forEach((recommendation) => {
-            scrollElement.appendChild(createRecommendationElement(recommendation));
-        })
-    
-        document.querySelector(".maxNumberOfRecommendationsDisplayed").value = fetchedData.maxNumberofRecommendationsDisplayed;
-        
-        document.getElementById("logoutButton").onclick = function(){
-            location.href = fetchedData.url;
-        }
+        displayRecommendationPage(fetchedData.recommendationsList, 
+                                scrollElement, 
+                                fetchedData.maxNumberofRecommendationsDisplayed, 
+                                fetchedData.urlForLoginOrLogout);
+
     }
 
     //if user is not logged in, comment form will be hidden
     else{
-        
-        scrollElement.querySelectorAll('*').forEach(childNode => childNode.remove());
-        const loginText = document.createElement("h1");
-        loginText.setAttribute('class', 'loginH1');
-        loginText.innerHTML = "<a href = '" + fetchedData.url + "'>Login here to view and input recommendations</a>"
-        scrollElement.appendChild(loginText);
+        displayLoginPage(scrollElement, fetchedData.urlForLoginOrLogout);
     }
   
   });
+
+}
+
+function displayRecommendationPage(recommendationsList, scrollElement, maxNumberofRecommendationsDisplayed, logoutURL){
+
+    document.querySelectorAll('.tickets').forEach(recommendationDiv => recommendationDiv.remove());
+    
+    recommendationsList.forEach((recommendation) => {
+        scrollElement.appendChild(createRecommendationElement(recommendation));
+    })
+    document.querySelector(".maxNumberOfRecommendationsDisplayed").value = maxNumberofRecommendationsDisplayed;
+    document.getElementById("logoutButton").onclick = function(){
+        location.href = logoutURL;
+    }
+
+}
+
+function displayLoginPage(scrollElement, loginURL){
+
+    scrollElement.querySelectorAll('*').forEach(childNode => childNode.remove());
+    const loginText = document.createElement("h1");
+    loginText.setAttribute('class', 'loginH1');
+    loginText.innerHTML = "<a href = '" + loginURL + "'>Login here to view and input recommendations</a>"
+    scrollElement.appendChild(loginText);
 
 }
 

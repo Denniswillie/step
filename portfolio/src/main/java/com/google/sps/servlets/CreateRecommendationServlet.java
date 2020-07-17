@@ -38,18 +38,13 @@ import com.google.appengine.api.users.User;
 public class CreateRecommendationServlet extends HttpServlet {
 
   public final UserService userService;
-  public final DatastoreService dataStoreService;
+  private final DatastoreService dataStoreService;
 
   //for production
   public CreateRecommendationServlet(){
       userService = UserServiceFactory.getUserService();
       dataStoreService = DatastoreServiceFactory.getDatastoreService();
   }
-
-//   //for testing
-//   public CreateRecommendationServlet(UserService userService){
-//       this.userService = userService;
-//   }
 
   //for testing
   public CreateRecommendationServlet(UserService userService, DatastoreService dataStoreService){
@@ -86,6 +81,3 @@ public class CreateRecommendationServlet extends HttpServlet {
     
   }
 }
-
-//test datastore has the correct value
-//test whether it redirects correctly or not
