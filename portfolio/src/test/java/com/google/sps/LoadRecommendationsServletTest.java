@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import com.google.sps.data.RecommendationsResponse;
+import com.google.sps.data.Recommendation;
 import org.json.*;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import static io.restassured.RestAssured.*;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,6 +41,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Entity;
 
 @RunWith(JUnit4.class)
 public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
@@ -57,7 +61,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
     }
 
     @Test
-    public void userIsNotLoggedInTest() throws IOException{
+    public void assertRecommendationsResponseWhenUserIsNotLoggedInTest() throws IOException{
 
         //mock objects
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -76,12 +80,114 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
 
         loadRecommendationsServlet.doGet(request, response);
         String testObject = stringWriter.toString();
-        JSONObject json = new JSONObject(testObject);
-        System.out.println(json."urlForLoginOrLogout");
-        // Assert.assertTrue(testObject.contains("\"recommendationsList\":[]")&&
-        //                 testObject.contains("\"maxNumberofRecommendationsDisplayed\":0")&&
-        //                 testObject.contains("\"isLoggedIn\":false")&&
-        //                 json.urlForLoginOrLogout == userService.createLoginURl("/recommendations.html"));
+
+        Gson gson = new Gson();
+        RecommendationsResponse obj = gson.fromJson(testObject, RecommendationsResponse.class);  
+
+        String expectedLoginUrl = userService.createLoginURL("/recommendations.html");
+        String resultLoginUrl = obj.getUrlForLoginOrLogout();
+
+        Assert.assertTrue(testObject.contains("\"recommendationsList\":[]")&&
+                        testObject.contains("\"maxNumberofRecommendationsDisplayed\":0")&&
+                        testObject.contains("\"isLoggedIn\":false")&&
+                        expectedLoginUrl.equals(resultLoginUrl));
+    }
+
+
+    @Test
+    public void countDatabaseEntitiesWhenQueryStringIsNullTest() throws IOException{
+        login("denniswillie", "google.com", true);
+
+        //mock objects
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        //create datastore and userservice
+        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+        UserService userService = UserServiceFactory.getUserService();
+
+        //create entity
+        Entity recommendationEntity = new Entity("Recommendation");
+        recommendationEntity.setProperty("name", "Dennis");
+        recommendationEntity.setProperty("relationship", "Myself");
+        recommendationEntity.setProperty("comment", "I have very tiny legs");
+        recommendationEntity.setProperty("email", "denniswillie@google.com");
+        recommendationEntity.setProperty("timestamp", 100);
+
+        //stubbing
+        when(request.getQueryString()).thenReturn(null);
+
+        //create servlet
+        LoadRecommendationsServlet loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(writer);
+
+        loadRecommendationsServlet.doGet(request, response);
+        String testObject = stringWriter.toString();
+        Gson gson = new Gson();
+        RecommendationsResponse obj = gson.fromJson(testObject, RecommendationsResponse.class);  
+        String expectedLogoutUrl = userService.createLogoutURL("/recommendations.html");
+        String resultLogoutUrl = obj.getUrlForLoginOrLogout();
+
+        Assert.assertTrue(testObject.contains("\"recommendationsList\":[]")&&
+                        testObject.contains("\"maxNumberofRecommendationsDisplayed\":0")&&
+                        testObject.contains("\"isLoggedIn\":true")&&
+                        expectedLogoutUrl.equals(resultLogoutUrl));
+
+    }
+
+    @Test
+    public void countDatabaseEntitiesWhenQueryStringIsNotNullTest() throws IOException{
+        login("denniswillie", "google.com", true);
+
+        //mock objects
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        //create datastore and userservice
+        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
+        UserService userService = UserServiceFactory.getUserService();
+
+        //create entity
+        Entity recommendationEntity = new Entity("Recommendation");
+        recommendationEntity.setProperty("name", "Dennis");
+        recommendationEntity.setProperty("relationship", "Myself");
+        recommendationEntity.setProperty("comment", "I have very tiny legs");
+        recommendationEntity.setProperty("email", "denniswillie@google.com");
+        recommendationEntity.setProperty("timestamp", 100);
+        dataStoreService.put(recommendationEntity);
+
+        //stubbing
+        when(request.getQueryString()).thenReturn("?max=1");
+
+        //create servlet
+        LoadRecommendationsServlet loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(writer);
+
+        loadRecommendationsServlet.doGet(request, response);
+        String testObject = stringWriter.toString();
+        Gson gson = new Gson();
+        RecommendationsResponse obj = gson.fromJson(testObject, RecommendationsResponse.class);  
+        String expectedLogoutUrl = userService.createLogoutURL("/recommendations.html");
+        String resultLogoutUrl = obj.getUrlForLoginOrLogout();
+
+        Assert.assertTrue(testObject.contains("\"maxNumberofRecommendationsDisplayed\":1")&&
+                        testObject.contains("\"isLoggedIn\":true")&&
+                        expectedLogoutUrl.equals(resultLogoutUrl));
+
+        Recommendation resultRecommendation = obj.getRecommendationsList().get(0);
+
+        System.out.println(resultRecommendation.getName());
+
+        Assert.assertTrue(resultRecommendation.getName().equals("Dennis")&&
+                        resultRecommendation.getRelationship().equals("Myself")&&
+                        resultRecommendation.getComment().equals("I have very tiny legs")&&
+                        resultRecommendation.getEmail().equals("denniswillie@google.com"));
     }
 
     @After

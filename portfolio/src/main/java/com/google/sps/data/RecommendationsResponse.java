@@ -50,7 +50,7 @@ public class RecommendationsResponse{
         return isLoggedIn;
     }
 
-    public String getURLforLoginOrLogout(){
+    public String getUrlForLoginOrLogout(){
         return urlForLoginOrLogout;
     }
 }
