@@ -27,7 +27,6 @@ function loadRecommendations(queryString) {
     
     const scrollElement = document.querySelector(".specialScroll");
     
-    //if user is logged in
     if(fetchedData.isLoggedIn){
     
         displayRecommendationPage(fetchedData.recommendationsList, 
@@ -37,7 +36,6 @@ function loadRecommendations(queryString) {
 
     }
 
-    //if user is not logged in, comment form will be hidden
     else{
         displayLoginPage(scrollElement, fetchedData.urlForLoginOrLogout);
     }

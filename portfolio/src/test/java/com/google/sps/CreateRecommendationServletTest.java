@@ -35,9 +35,17 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Entity;
 
 @RunWith(JUnit4.class)
 public class CreateRecommendationServletTest extends CreateRecommendationServlet{
+
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+    private DatastoreService dataStoreService;
+    private UserService userService;
+    private CreateRecommendationServlet createRecommendationServlet;
+
     private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
     
@@ -51,64 +59,41 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
     @Before
     public void setUp() {
         helper.setUp();
-    }
-
-    //test if datastore has correct data when user is logged in
-    @Test
-    public void dataStoreHasCorrectDataIfLoggedInTest() throws IOException {
-
-        login("denniswillie", "google.com", true);
-
-        // create mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userservice
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+        dataStoreService = DatastoreServiceFactory.getDatastoreService();
+        userService = UserServiceFactory.getUserService();
 
         //stubbing
         when(request.getParameter("name")).thenReturn("Dennis");
         when(request.getParameter("relationship")).thenReturn("Myself");
         when(request.getParameter("comment")).thenReturn("I have very tiny legs");
 
-        //create servlet and call doPost method
-        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
+        createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
+    }
+
+    @Test
+    public void testDoPostMethodWhenUserLoggedInAssertDatabaseHasOneEntityWithKindNameRecommendation() throws IOException {
+
+        login("denniswillie", "google.com", true);
+
         createRecommendationServlet.doPost(request, response);
 
         //create and send query to database
         Query testQuery = new Query("Recommendation");
-        PreparedQuery testResult = dataStoreService.prepare(testQuery);
+        Entity testResult = dataStoreService.prepare(testQuery).asSingleEntity();
         
         //assert that the datastore has 1 entity with the kind name = "Recommendation" with all the properties
-        Gson gson = new Gson();
-        String testObject = gson.toJson(testResult.asSingleEntity());
-        Assert.assertTrue(testObject.contains("\"name\":\"Dennis\"")&&
-                        testObject.contains("\"comment\":\"I have very tiny legs\"")&&
-                        testObject.contains("\"relationship\":\"Myself\"")&&
-                        testObject.contains("\"email\":\"denniswillie@google.com\""));
+        Assert.assertTrue(testResult.getProperty("name").equals("Dennis") &&
+                        testResult.getProperty("relationship").equals("Myself") &&
+                        testResult.getProperty("comment").equals("I have very tiny legs") &&
+                        testResult.getProperty("email").equals("denniswillie@google.com"));
 
     }
 
-    //assert datastore doesn't have any entities if user is logged out
     @Test
-    public void dataStoreHasNoEntitiesIfLoggedOutTest() throws IOException {
+    public void testDoPostMethodWhenUserLoggedOutAssertDatabaseHasNoEntities() throws IOException {
 
-        // create mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userService
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //stubbing
-        when(request.getParameter("name")).thenReturn("Dennis");
-        when(request.getParameter("relationship")).thenReturn("Myself");
-        when(request.getParameter("comment")).thenReturn("I have very tiny legs");
-
-        //create servlet and call doPost method
-        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
         createRecommendationServlet.doPost(request, response);
 
         //create and send query to database
@@ -121,42 +106,17 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
 
 
     @Test
-    public void responseRedirectIfLoggedInTest() throws IOException{
+    public void testDoPostMethodWhenUserLoggedInAssertResponseSendRedirectToRecommendationsHtml() throws IOException{
         login("denniswillie", "google.com", true);
 
-        // create mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userService
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //stubbing
-        when(request.getParameter("name")).thenReturn("Dennis");
-        when(request.getParameter("relationship")).thenReturn("Myself");
-        when(request.getParameter("comment")).thenReturn("I have very tiny legs");
-
-        //create servlet and call doPost method
-        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
         createRecommendationServlet.doPost(request, response);
 
         verify(response).sendRedirect("/recommendations.html");
     }    
 
     @Test
-    public void responseRedirectIfLoggedOutTest() throws IOException{
-        
-        // create mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
+    public void testDoPostMethodWhenUserLoggedOutAssertResponseRedirectToLoginURLWithDestinationURLRecommendationsHtml() throws IOException{
 
-        //create datastore and userService
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //create servlet and call doPost method
-        CreateRecommendationServlet createRecommendationServlet = new CreateRecommendationServlet(userService, dataStoreService);
         createRecommendationServlet.doPost(request, response);
 
         verify(response).sendRedirect(userService.createLoginURL("/recommendations.html"));

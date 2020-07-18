@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.util.*;
 import static io.restassured.RestAssured.*;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -45,8 +46,14 @@ import com.google.appengine.api.datastore.Entity;
 
 @RunWith(JUnit4.class)
 public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
+
     private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+    private UserService userService;
+    private DatastoreService dataStoreService;
+    private LoadRecommendationsServlet loadRecommendationsServlet;
     
     public void login(String username, String domain, boolean isAdmin) {
         helper.setEnvAuthDomain(domain);
@@ -58,21 +65,25 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
     @Before
     public void setUp() {
         helper.setUp();
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+        dataStoreService = DatastoreServiceFactory.getDatastoreService();
+        userService = UserServiceFactory.getUserService();
+
+        //create testing entity
+        Entity recommendationEntity = new Entity("Recommendation");
+        recommendationEntity.setProperty("name", "Dennis");
+        recommendationEntity.setProperty("relationship", "Myself");
+        recommendationEntity.setProperty("comment", "I have very tiny legs");
+        recommendationEntity.setProperty("email", "denniswillie@google.com");
+        recommendationEntity.setProperty("timestamp", 100);
+        dataStoreService.put(recommendationEntity);
+
+        loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
     }
 
     @Test
-    public void assertRecommendationsResponseWhenUserIsNotLoggedInTest() throws IOException{
-
-        //mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userservice
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //create servlet
-        LoadRecommendationsServlet loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
+    public void testDoGetMethodWhenUserLoggedOutAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
@@ -95,30 +106,11 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
 
 
     @Test
-    public void countDatabaseEntitiesWhenQueryStringIsNullTest() throws IOException{
+    public void testDoGetMethodWhenUserLoggedInAndQueryStringIsNullAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
         login("denniswillie", "google.com", true);
-
-        //mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userservice
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //create entity
-        Entity recommendationEntity = new Entity("Recommendation");
-        recommendationEntity.setProperty("name", "Dennis");
-        recommendationEntity.setProperty("relationship", "Myself");
-        recommendationEntity.setProperty("comment", "I have very tiny legs");
-        recommendationEntity.setProperty("email", "denniswillie@google.com");
-        recommendationEntity.setProperty("timestamp", 100);
 
         //stubbing
         when(request.getQueryString()).thenReturn(null);
-
-        //create servlet
-        LoadRecommendationsServlet loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
@@ -139,31 +131,16 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
     }
 
     @Test
-    public void countDatabaseEntitiesWhenQueryStringIsNotNullTest() throws IOException{
+    public void testDoGetMethodWhenUserLoggedInAndQueryStringIsNotNullAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
         login("denniswillie", "google.com", true);
-
-        //mock objects
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        //create datastore and userservice
-        DatastoreService dataStoreService = DatastoreServiceFactory.getDatastoreService();
-        UserService userService = UserServiceFactory.getUserService();
-
-        //create entity
-        Entity recommendationEntity = new Entity("Recommendation");
-        recommendationEntity.setProperty("name", "Dennis");
-        recommendationEntity.setProperty("relationship", "Myself");
-        recommendationEntity.setProperty("comment", "I have very tiny legs");
-        recommendationEntity.setProperty("email", "denniswillie@google.com");
-        recommendationEntity.setProperty("timestamp", 100);
-        dataStoreService.put(recommendationEntity);
 
         //stubbing
         when(request.getQueryString()).thenReturn("?max=1");
-
-        //create servlet
-        LoadRecommendationsServlet loadRecommendationsServlet = new LoadRecommendationsServlet(dataStoreService, userService);
+        
+        Map <String, String[]> map = new HashMap<String, String[]>();
+        String[] maxValueStub = {"1"};
+        map.put("max", maxValueStub);
+        when(request.getParameterMap()).thenReturn(map);
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);

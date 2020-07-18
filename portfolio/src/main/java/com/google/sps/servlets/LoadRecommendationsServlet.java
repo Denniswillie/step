@@ -26,9 +26,7 @@ import com.google.sps.data.Recommendation;
 import com.google.sps.data.RecommendationsResponse;
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +70,7 @@ public class LoadRecommendationsServlet extends HttpServlet {
         PreparedQuery results = dataStoreService.prepare(query);
 
         if(request.getQueryString() != null){
-            maxNumberOfRecommendations = queryStringParser(request.getQueryString());
+            maxNumberOfRecommendations = Integer.parseInt(request.getParameterMap().get("max")[0]);
         }
 
         List<Recommendation> recommendations = new ArrayList<>();
@@ -94,11 +92,6 @@ public class LoadRecommendationsServlet extends HttpServlet {
         RecommendationsResponse recommendationsResponse = new RecommendationsResponse(recommendations, maxNumberOfRecommendations, true, userService.createLogoutURL("/recommendations.html"));
         response.getWriter().println(gson.toJson(recommendationsResponse)); 
     }
-  }
-
-  public int queryStringParser(String queryString){
-      String keyValuePair[] = queryString.split("=");
-      return Integer.parseInt(keyValuePair[1]);
   }
 
 }

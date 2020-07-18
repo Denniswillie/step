@@ -37,7 +37,7 @@ import com.google.appengine.api.users.User;
 @WebServlet("/create-recommendation")
 public class CreateRecommendationServlet extends HttpServlet {
 
-  public final UserService userService;
+  private final UserService userService;
   private final DatastoreService dataStoreService;
 
   //for production
