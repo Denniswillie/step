@@ -17,7 +17,25 @@ package com.google.sps;
 import java.util.Collection;
 
 public final class FindMeetingQuery {
+
+    /*
+        First algorithm. Do a quicksort on the eventsArray based on the timerange start time. 
+        Loop through the sorted eventsArray. For every event, check if the time range on the 
+    */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
-    throw new UnsupportedOperationException("TODO: Implement this method.");
+
+      String[] requestAttendees = request.getAttendees().toArray();
+      TimeRange timeRangeForRequestedEvent = new TimeRange(0, 24 * 60);
+      Event[] eventsArray = events.toArray();
+
+      //sort array by timeRange start time ascending
+      QuickSort.sort(eventsArray, 0, eventsArray.length - 1);
+
+      for(Event e: eventsArray){
+          if(e.getWhen().){
+
+          }
+      }
+
   }
 }
