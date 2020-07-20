@@ -25,7 +25,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.sps.servlets.LoadRecommendationsServlet;
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
@@ -83,7 +84,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
     }
 
     @Test
-    public void testDoGetMethodWhenUserLoggedOutAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
+    public void DoGetMethod_WhenUserLoggedOut_ResponseContainCorrectRecommendationsResponseFields() throws IOException{
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
@@ -98,7 +99,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
         String expectedLoginUrl = userService.createLoginURL("/recommendations.html");
         String resultLoginUrl = obj.getUrlForLoginOrLogout();
 
-        Assert.assertTrue(testObject.contains("\"recommendationsList\":[]")&&
+        assertTrue(testObject.contains("\"recommendationsList\":[]")&&
                         testObject.contains("\"maxNumberofRecommendationsDisplayed\":0")&&
                         testObject.contains("\"isLoggedIn\":false")&&
                         expectedLoginUrl.equals(resultLoginUrl));
@@ -106,7 +107,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
 
 
     @Test
-    public void testDoGetMethodWhenUserLoggedInAndQueryStringIsNullAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
+    public void DoGetMethod_WhenUserLoggedInAndQueryStringIsNull_ResponseContainCorrectRecommendationsResponseFields() throws IOException{
         login("denniswillie", "google.com", true);
 
         //stubbing
@@ -123,7 +124,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
         String expectedLogoutUrl = userService.createLogoutURL("/recommendations.html");
         String resultLogoutUrl = obj.getUrlForLoginOrLogout();
 
-        Assert.assertTrue(testObject.contains("\"recommendationsList\":[]")&&
+        assertTrue(testObject.contains("\"recommendationsList\":[]")&&
                         testObject.contains("\"maxNumberofRecommendationsDisplayed\":0")&&
                         testObject.contains("\"isLoggedIn\":true")&&
                         expectedLogoutUrl.equals(resultLogoutUrl));
@@ -131,7 +132,7 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
     }
 
     @Test
-    public void testDoGetMethodWhenUserLoggedInAndQueryStringIsNotNullAssertResponseContainCorrectRecommendationsResponseFields() throws IOException{
+    public void DoGetMethod_WhenUserLoggedInAndQueryStringIsNotNull_ResponseContainCorrectRecommendationsResponseFields() throws IOException{
         login("denniswillie", "google.com", true);
 
         //stubbing
@@ -153,18 +154,21 @@ public class LoadRecommendationsServletTest extends LoadRecommendationsServlet{
         String expectedLogoutUrl = userService.createLogoutURL("/recommendations.html");
         String resultLogoutUrl = obj.getUrlForLoginOrLogout();
 
-        Assert.assertTrue(testObject.contains("\"maxNumberofRecommendationsDisplayed\":1")&&
+        assertTrue(testObject.contains("\"maxNumberofRecommendationsDisplayed\":1")&&
                         testObject.contains("\"isLoggedIn\":true")&&
                         expectedLogoutUrl.equals(resultLogoutUrl));
 
         Recommendation resultRecommendation = obj.getRecommendationsList().get(0);
 
-        System.out.println(resultRecommendation.getName());
-
-        Assert.assertTrue(resultRecommendation.getName().equals("Dennis")&&
+        assertTrue(resultRecommendation.getName().equals("Dennis")&&
                         resultRecommendation.getRelationship().equals("Myself")&&
                         resultRecommendation.getComment().equals("I have very tiny legs")&&
                         resultRecommendation.getEmail().equals("denniswillie@google.com"));
+
+        assertEquals(resultRecommendation.getName(),"Dennis");
+        assertEquals(resultRecommendation.getRelationship(),"Myself");
+        assertEquals(resultRecommendation.getComment(),"I have very tiny legs");
+        assertEquals(resultRecommendation.getEmail(),"denniswillie@google.com");
     }
 
     @After

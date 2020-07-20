@@ -18,7 +18,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.sps.servlets.CreateRecommendationServlet;
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
     }
 
     @Test
-    public void testDoPostMethodWhenUserLoggedInAssertDatabaseHasOneEntityWithKindNameRecommendation() throws IOException {
+    public void DoPostMethod_WhenUserLoggedIn_DatabaseHasOneEntityWithKindNameRecommendation() throws IOException {
 
         login("denniswillie", "google.com", true);
 
@@ -84,15 +85,15 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
         Entity testResult = dataStoreService.prepare(testQuery).asSingleEntity();
         
         //assert that the datastore has 1 entity with the kind name = "Recommendation" with all the properties
-        Assert.assertTrue(testResult.getProperty("name").equals("Dennis") &&
-                        testResult.getProperty("relationship").equals("Myself") &&
-                        testResult.getProperty("comment").equals("I have very tiny legs") &&
-                        testResult.getProperty("email").equals("denniswillie@google.com"));
+        assertEquals(testResult.getProperty("name"),"Dennis");
+        assertEquals(testResult.getProperty("relationship"),"Myself");
+        assertEquals(testResult.getProperty("comment"),"I have very tiny legs");
+        assertEquals(testResult.getProperty("email"),"denniswillie@google.com");
 
     }
 
     @Test
-    public void testDoPostMethodWhenUserLoggedOutAssertDatabaseHasNoEntities() throws IOException {
+    public void DoPostMethod_WhenUserLoggedOut_DatabaseHasNoEntities() throws IOException {
 
         createRecommendationServlet.doPost(request, response);
 
@@ -101,12 +102,12 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
         PreparedQuery testResult = dataStoreService.prepare(testQuery);
         
         //assert that the datastore has no entity 
-        Assert.assertEquals(0, testResult.countEntities(FetchOptions.Builder.withLimit(10)));
+        assertEquals(0, testResult.countEntities(FetchOptions.Builder.withLimit(10)));
     }
 
 
     @Test
-    public void testDoPostMethodWhenUserLoggedInAssertResponseSendRedirectToRecommendationsHtml() throws IOException{
+    public void DoPostMethod_WhenUserLoggedIn_ResponseSendRedirectToRecommendationsHtml() throws IOException{
         login("denniswillie", "google.com", true);
 
         createRecommendationServlet.doPost(request, response);
@@ -115,7 +116,7 @@ public class CreateRecommendationServletTest extends CreateRecommendationServlet
     }    
 
     @Test
-    public void testDoPostMethodWhenUserLoggedOutAssertResponseRedirectToLoginURLWithDestinationURLRecommendationsHtml() throws IOException{
+    public void DoPostMethod_WhenUserLoggedOut_ResponseRedirectToLoginURLWithDestinationURLRecommendationsHtml() throws IOException{
 
         createRecommendationServlet.doPost(request, response);
 
