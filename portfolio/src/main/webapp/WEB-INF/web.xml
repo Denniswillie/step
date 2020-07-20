@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+  <servlet>
+    <servlet-name>LoadRecommendationsServlet</servlet-name>
+    <servlet-class>com.google.sps.servlets.LoadRecommendationsServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>LoadRecommendationsServlet</servlet-name>
+    <url-pattern>/load-recommendations</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>CreateRecommendationServlet</servlet-name>
+    <servlet-class>com.google.sps.servlets.CreateRecommendationServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>CreateRecommendationServlet</servlet-name>
+    <url-pattern>/create-recommendation</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DeleteRecommendationServlet</servlet-name>
+    <servlet-class>com.google.sps.servlets.DeleteRecommendationServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteRecommendationServlet</servlet-name>
+    <url-pattern>/delete-recommendation</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+</web-app>   
