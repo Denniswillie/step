@@ -16,16 +16,16 @@ package com.google.sps;
 
 import java.util.*;
 
-public class QuickSort{
+public final class QuickSort{
 
-    public int partition(Event[] eventsArray, int low, int pivot){
+    public static int partition(Event[] eventsArray, int low, int pivot){
         int smallerIndex = low - 1;
         for(int index = low; index < pivot; index++){
             if(eventsArray[index].getWhen().start() < eventsArray[pivot].getWhen().start()){
                 smallerIndex++;
                 Event temporaryEvent = eventsArray[index];
                 eventsArray[index] = eventsArray[smallerIndex];
-                eventsArray[smallerIndex] = temporaryElement;
+                eventsArray[smallerIndex] = temporaryEvent;
             }
         }
         smallerIndex++;
@@ -36,7 +36,7 @@ public class QuickSort{
         return smallerIndex;
     }
 
-    public void sort(Event[] eventsArray, int low, int pivot){
+    public static void sort(Event[] eventsArray, int low, int pivot){
         if(low < pivot){
             int pivotIndex = partition(eventsArray, low, pivot);
             
