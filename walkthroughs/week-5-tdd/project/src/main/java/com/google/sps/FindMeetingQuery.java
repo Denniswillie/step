@@ -18,10 +18,6 @@ import java.util.*;
 
 public final class FindMeetingQuery {
 
-    /*
-        First algorithm. Do a quicksort on the eventsArray based on the timerange start time. 
-        Loop through the sorted eventsArray. For every event, check if the time range on the 
-    */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       String[] requestAttendees = request.getAttendees().toArray(new String[]{});
@@ -29,7 +25,6 @@ public final class FindMeetingQuery {
       List<TimeRange> timeRangesForRequestedEvent = new ArrayList<TimeRange>();
       Event[] eventsArray = events.toArray(new Event[]{});
 
-      //sort array by timeRange start time ascending
       QuickSort.sort(eventsArray, 0, eventsArray.length - 1);
 
       int currentStartTime = 0;
@@ -42,16 +37,16 @@ public final class FindMeetingQuery {
           int eventDuration = eventTimeRange.duration();
           int eventEndTime = eventStartTime + eventDuration;
           int currentEndTime = currentStartTime + currentDuration;
-
+          
           if(eventStartTime >= currentStartTime && eventEndTime <= currentEndTime){
               currentStartTime = eventStartTime;
               currentDuration = currentEndTime - currentStartTime;
               continue;
           }
-
+          
           else{
               for(String attendee: event.getAttendees()){
-                  if(Arrays.binarySearch(requestAttendees, attendee) != -1){
+                  if(Arrays.asList(requestAttendees).contains(attendee)){
                       if(eventStartTime == currentStartTime && currentDuration == 0){
                           currentDuration = eventDuration;
                       }
