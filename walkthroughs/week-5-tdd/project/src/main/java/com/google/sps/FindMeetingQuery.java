@@ -14,7 +14,7 @@
 
 package com.google.sps;
 
-import java.util.Collection;
+import java.util.*;
 
 public final class FindMeetingQuery {
 
@@ -25,17 +25,66 @@ public final class FindMeetingQuery {
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       String[] requestAttendees = request.getAttendees().toArray();
-      TimeRange timeRangeForRequestedEvent = new TimeRange(0, 24 * 60);
+      long requestDuration = request.getDuration();
+      List<TimeRange> timeRangeForRequestedEvent = new List<TimeRange>();
       Event[] eventsArray = events.toArray();
 
       //sort array by timeRange start time ascending
       QuickSort.sort(eventsArray, 0, eventsArray.length - 1);
 
-      for(Event e: eventsArray){
-          if(e.getWhen().){
+      int currentStartTime = 0;
+      int currentDuration = 0;
 
+      for(Event event: eventsArray){
+
+          TimeRange eventTimeRange = event.getWhen();
+          int eventStartTime = eventTimeRange.start();
+          int eventDuration = eventTimeRange.duration();
+          int eventEndTime = eventStartTime + eventDuration;
+          int currentEndTime = currentStartTime + currentEndTime;
+
+          if(eventStartTime >= currentStartTime && eventEndTime <= currentEndTime){
+              currentStartTime = eventStartTime;
+              currentDuration = currentEndTime - currentStartTime;
+              continue;
+          }
+
+          else{
+              for(String attendee: events.getAttendees().toArray()){
+                  if(Arrays.binarySearch(requestAttendees, attendee) != -1){
+                      if(eventStartTime == currentStartTime && currentDuration == 0){
+                          currentDuration = eventDuration;
+                      }
+                      else if(eventStartTime > currentStartTime && currentDuration == 0){
+                          int timeRangeDuration = eventStartTime - currentStartTime;
+                          if(timeRangeDuration >= requestDuration){
+                              timeRangesForRequestedEvent.add(new TimeRange(currentStartTime, timeRangeDuration));
+                          }
+                          currentStartTime = eventStartTime;
+                          currentDuration = eventDuration;
+                      }
+                      else if(eventEndTime > currentEndTime && currentDuration != 0){
+                          int timeRangeDuration = eventStartTime - currentEndTime;
+                          if(eventStartTime > currentEndTime && timeRangeToBeInserted >= requestDuration){
+                              timeRangesForRequestedEvent.add(new TimeRange(currentEndTime, timeRangeDuration));
+                          }
+                          currentStartTime = eventStartTime;
+                          currentDuration = eventDuration;
+                      }
+                      break;
+                  }
+              }
           }
       }
+      
+      int currentEndTime = currentStartTime + currentDuration;
+      int endOfDay = 24 * 60;
+      int timeLeftBetweenEndOfDayAndCurrentEndTime = endOfDay - currentEndTime;
+      if(currentEndTime < endOfDay && timeLeftBetweenEndOfDayAndCurrentEndTime >= requestDuration){
+          timeRangesForRequestedEvent.add(new TimeRange(currentEndTime, timeLeftBetweenEndOfDayAndCurrentEndTime));
+      }
+
+      return timeRangesForRequestedEvent;
 
   }
 }
