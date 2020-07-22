@@ -18,6 +18,14 @@ import java.util.*;
 
 public final class FindMeetingQuery {
 
+    /*The algorithm works by sorting the events based on the start time (ascending). After 
+    that it loops through the eventsArray and see if the timerange for the particular
+    event that it's looping is eligible to be processed. If it's eligible, then the
+    it will look through the collection of attendees, if it manages to find an attendee
+    that is also in the requestedAttendees array, then we will work out the currentStartTime
+    and currentDuration to find out if there's an empty time slot to be inserted to the
+    timeRangesForRequestedEvent list.
+    */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       String[] requestAttendees = request.getAttendees().toArray(new String[]{});
