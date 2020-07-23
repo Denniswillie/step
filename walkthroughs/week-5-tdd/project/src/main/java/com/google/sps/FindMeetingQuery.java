@@ -14,26 +14,33 @@
 
 package com.google.sps;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 public final class FindMeetingQuery {
 
-    /*The algorithm works by sorting the events based on the start time (ascending). After 
-    that it loops through the eventsArray and see if the timerange for the particular
-    event that it's looping is eligible to be processed. If it's eligible, then the
-    it will look through the collection of attendees, if it manages to find an attendee
-    that is also in the requestedAttendees array, then we will work out the currentStartTime
-    and currentDuration to find out if there's an empty time slot to be inserted to the
-    timeRangesForRequestedEvent list.
+    /**
+    * This algorithm returns a collection of timeslots available for the meeting request based on existing events.
+    * It will return an empty collection if no timeslots are available.
     */
+
+  private Event[] eventsArray;
+
+  //for testing
+  public Event[] getEventsArray(){
+    return eventsArray;
+  }
+
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       String[] requestAttendees = request.getAttendees().toArray(new String[]{});
       long requestDuration = request.getDuration();
       List<TimeRange> timeRangesForRequestedEvent = new ArrayList<TimeRange>();
-      Event[] eventsArray = events.toArray(new Event[]{});
-
-      QuickSort.sort(eventsArray, 0, eventsArray.length - 1);
+      eventsArray = events.toArray(new Event[]{});
+      
+      Arrays.sort(eventsArray, Event.ORDER_BY_TIMERANGE_START_TIME);
 
       int currentStartTime = 0;
       int currentDuration = 0;
@@ -43,12 +50,19 @@ public final class FindMeetingQuery {
           TimeRange eventTimeRange = event.getWhen();
           int eventStartTime = eventTimeRange.start();
           int eventDuration = eventTimeRange.duration();
-          int eventEndTime = eventStartTime + eventDuration;
+          int eventEndTime = eventTimeRange.end();
           int currentEndTime = currentStartTime + currentDuration;
           
-          if(eventStartTime >= currentStartTime && eventEndTime <= currentEndTime){
-              currentStartTime = eventStartTime;
-              currentDuration = currentEndTime - currentStartTime;
+          if(eventFitsInCurrentTime(eventStartTime, 
+                                    eventEndTime,
+                                    currentStartTime,
+                                    currentEndTime)){
+
+              updateCurrentTimeWithEvent(currentStartTime,
+                                        currentEndTime,
+                                        currentDuration,
+                                        eventStartTime);
+                                        
               continue;
           }
           
@@ -66,7 +80,7 @@ public final class FindMeetingQuery {
                           currentStartTime = eventStartTime;
                           currentDuration = eventDuration;
                       }
-                      else if(eventEndTime > currentEndTime && currentDuration != 0){
+                      else{
                           int timeRangeDuration = eventStartTime - currentEndTime;
                           if(eventStartTime > currentEndTime && timeRangeDuration >= requestDuration){
                               timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentEndTime, timeRangeDuration));
@@ -89,5 +103,21 @@ public final class FindMeetingQuery {
 
       return timeRangesForRequestedEvent;
 
+  }
+
+  public boolean eventFitsInCurrentTime(int eventStartTime,
+                                        int eventEndTime,
+                                        int currentStartTime,  
+                                        int currentEndTime){
+    
+      return eventStartTime >= currentStartTime && eventEndTime <= currentEndTime;
+  }
+
+  public void updateCurrentTimeWithEvent(int currentStartTime,
+                                        int currentEndTime,
+                                        int currentDuration,
+                                        int eventStartTime){
+      currentStartTime = eventStartTime;
+      currentDuration = currentEndTime - currentStartTime;
   }
 }
