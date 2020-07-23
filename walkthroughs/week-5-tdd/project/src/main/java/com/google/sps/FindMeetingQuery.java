@@ -60,15 +60,9 @@ public final class FindMeetingQuery {
           eventEndTime = eventTimeRange.end();
           currentEndTime = currentStartTime + currentDuration;
           
-          if(eventFitsInCurrentTimeRange(eventStartTime, 
-                                    eventEndTime,
-                                    currentStartTime,
-                                    currentEndTime)){
+          if(eventFitsInCurrentTimeRange()){
 
-              updateCurrentTimeRangeWithEvent(currentStartTime,
-                                        currentEndTime,
-                                        currentDuration,
-                                        eventStartTime);
+              updateCurrentTimeRangeWithEvent();
                                         
               continue;
           }
@@ -96,18 +90,12 @@ public final class FindMeetingQuery {
 
   }
 
-  public boolean eventFitsInCurrentTimeRange(int eventStartTime,
-                                        int eventEndTime,
-                                        int currentStartTime,  
-                                        int currentEndTime){
+  public boolean eventFitsInCurrentTimeRange(){
     
       return eventStartTime >= currentStartTime && eventEndTime <= currentEndTime;
   }
 
-  public void updateCurrentTimeRangeWithEvent(int currentStartTime,
-                                        int currentEndTime,
-                                        int currentDuration,
-                                        int eventStartTime){
+  public void updateCurrentTimeRangeWithEvent(){
       currentStartTime = eventStartTime;
       currentDuration = currentEndTime - currentStartTime;
   }
