@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class FindMeetingQuery {
 
@@ -26,9 +28,11 @@ public final class FindMeetingQuery {
     * It will return an empty collection if no timeslots are available.
     */
 
-  private CurrentTimeRange currentTimeRange;
+  private ModifiableTimeRange currentFilledTimeRange;
   private long requestDuration;
   private List<TimeRange> timeRangesForRequestedEvent;
+  private List<TimeRange> timeRangesForEventsWithOptionalAndNoMandatoryAttendees;
+  private List<TimeRange> timeRangesIncludingMandatoryAndOptionalAttendees;
 
   private Event[] eventsArray;
 
@@ -39,33 +43,69 @@ public final class FindMeetingQuery {
 
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
-      String[] requestAttendees = request.getAttendees().toArray(new String[]{});
+      Set<String> mandatoryAttendees = new HashSet<String>(request.getAttendees());
+
       requestDuration = request.getDuration();
-      currentTimeRange = new CurrentTimeRange(0,0);
+      currentFilledTimeRange = new CurrentTimeRange(0,0);
       timeRangesForRequestedEvent = new ArrayList<TimeRange>();
+      timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<TimeRange>();
+      timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<TimeRange>();
       eventsArray = events.toArray(new Event[]{});
       
       Arrays.sort(eventsArray, Event.ORDER_BY_TIMERANGE_START_TIME);
 
       for(Event event: eventsArray){
           
-          if(eventFitsInCurrentTimeRange(event)){
+          if(eventFitsInCurrentFilledTimeRange(event)){
 
-              updateCurrentTimeRangeWithEvent(event);
+              updateCurrentFilledTimeRangeWithEvent(event);
                                         
               continue;
           }
           
           else{
-              for(String attendee: event.getAttendees()){
-                  if(Arrays.asList(requestAttendees).contains(attendee)){
-                      if(noCurrentTimeRangeAndEventStartsAtStartOfDay(event)){
-                          setCurrentTimeRangeDurationAsEventDuration(event);
+
+              Set<String> eventAttendees = event.getAttendees();
+              boolean eventContainsOptionalAttendee = false;
+              boolean eventContainsMandatoryAttendee = false;
+
+              for(String attendee: eventAttendees){
+                  if(requestAttendees.contains(attendee)){
+
+                      eventContainsMandatoryAttendee = true;
+
+                      if(noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(event)){
+                          setCurrentFilledTimeRangeDurationAsEventDuration(event);
                       }
                       else{
-                          setCurrentTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(event);
+                          setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(event);
                       }
                       break;
+                  }
+                  else if(!eventContainsOptionalAttendee){
+                      if(optionalAttendees.contains(attendee)){
+                          eventContainsOptionalAttendee = true;
+                      }
+                  }
+              }
+
+              //make the optional timerange a one layer time range
+              if(!eventContainsMandatoryAttendee && eventContainsOptionalAttendee){
+                  int listSize = timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size();
+                  if(listSize == 0){
+                      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(eventTimeRange(event));   
+                  }
+                  else{
+                      TimeRange lastTimeRangeInList = timeRangesForEventsWithOptionalAndNoMandatoryAttendees.get(listSize - 1);    
+                      if(eventTimeRange(event).start() > lastTimeRangeInList.end()){
+                          timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(eventTimeRange(event));
+                      }
+                      else if(eventTimeRange(event).end() > lastTimeRangeInList.end()){
+                          int newTimeRangeDuration = eventTimeRange(event).end() - lastTimeRangeInList.start();
+                          TimeRange newTimeRange = new TimeRange.fromStartDuration(lastTimeRangeInList.start(), newTimeRangeDuration);
+                          timeRangesForEventsWithOptionalAndNoMandatoryAttendees.remove(listSize - 1);
+                          timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(newTimeRange);
+                      }
                   }
               }
           }
@@ -73,68 +113,85 @@ public final class FindMeetingQuery {
       
       addRemainingTimeSlotToTimeRangesForRequestedEvent();
 
-      return timeRangesForRequestedEvent;
+      int timeRangesForRequestedEventSize = timeRangesForRequestedEvent.size();
+      if(timeRangesForRequestedEventSize == 0){
+          return timeRangesForRequestedEvent;
+      }
 
+      //find closest optional attendees time range from (x = 0)
+      if(timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size() > 0){
+          
+        ModifiableTimeRange currentTimeRange = new ModifiableTimeRange(0,0);
+        
+
+      }
+
+      return (timeRangesIncludingMandatoryAndOptionalAttendees.size() == 0) ? 
+                timeRangesForRequestedEvent : timeRangesIncludingMandatoryAndOptionalAttendees;
   }
 
-  public boolean eventFitsInCurrentTimeRange(Event event){
+  public boolean eventFitsInCurrentFilledTimeRange(Event event){
       
-      return eventStartTime(event) >= currentTimeRangeStartTime() && 
-            eventEndTime(event) <= currentTimeRangeEndTime();
+      return eventStartTime(event) >= currentFilledTimeRangeStartTime() && 
+            eventEndTime(event) <= currentFilledTimeRangeEndTime();
   }
 
-  public void updateCurrentTimeRangeWithEvent(Event event){
-      int temporaryCurrentTimeRangeEndTime = currentTimeRangeEndTime();
-      setCurrentTimeRangeStartTime(eventStartTime(event));
-      setCurrentTimeRangeDuration(temporaryCurrentTimeRangeEndTime - currentTimeRangeStartTime());
+  public void updateCurrentFilledTimeRangeWithEvent(Event event){
+      int temporaryCurrentTimeRangeEndTime = currentFilledTimeRangeEndTime();
+      setCurrentFilledTimeRangeStartTime(eventStartTime(event));
+      setCurrentFilledTimeRangeDuration(temporaryCurrentTimeRangeEndTime - currentFilledTimeRangeStartTime());
   }
 
-  public boolean noCurrentTimeRangeAndEventStartsAtStartOfDay(Event event){
+  public boolean noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(Event event){
 
-      return eventStartTime(event) == currentTimeRangeStartTime() && currentTimeRangeDuration() == 0;
+      return eventStartTime(event) == currentFilledTimeRangeStartTime() && currentFilledTimeRangeDuration() == 0;
 
   }
 
-  public void setCurrentTimeRangeDurationAsEventDuration(Event event){
-      setCurrentTimeRangeDuration(eventDuration(event));
+  public void setCurrentFilledTimeRangeDurationAsEventDuration(Event event){
+      setCurrentFilledTimeRangeDuration(eventDuration(event));
   }
 
-  public void setCurrentTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(Event event){
-    int timeRangeDuration = eventStartTime(event) - currentTimeRangeEndTime();
+  public void setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(Event event){
+    int timeRangeDuration = eventStartTime(event) - currentFilledTimeRangeEndTime();
     if(timeRangeDuration >= requestDuration){
-        timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentTimeRangeEndTime(), timeRangeDuration));
+        timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentFilledTimeRangeEndTime(), timeRangeDuration));
     }
-    setCurrentTimeRangeStartTime(eventStartTime(event));
-    setCurrentTimeRangeDuration(eventDuration(event));
+    setCurrentFilledTimeRangeStartTime(eventStartTime(event));
+    setCurrentFilledTimeRangeDuration(eventDuration(event));
   }
 
   public void addRemainingTimeSlotToTimeRangesForRequestedEvent(){
       int endOfDay = 24 * 60;
-      int timeLeftBetweenEndOfDayAndCurrentEndTime = endOfDay - currentTimeRangeEndTime();
-      if(currentTimeRangeEndTime() < endOfDay && timeLeftBetweenEndOfDayAndCurrentEndTime >= requestDuration){
-          timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentTimeRangeEndTime(), 
+      int timeLeftBetweenEndOfDayAndCurrentEndTime = endOfDay - currentFilledTimeRangeEndTime();
+      if(currentFilledTimeRangeEndTime() < endOfDay && timeLeftBetweenEndOfDayAndCurrentEndTime >= requestDuration){
+          timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentFilledTimeRangeEndTime(), 
                                                                     timeLeftBetweenEndOfDayAndCurrentEndTime));
       }
   }
 
-  public int currentTimeRangeStartTime(){
-      return currentTimeRange.start();
+  public int currentFilledTimeRangeStartTime(){
+      return currentFilledTimeRange.start();
   }
 
-  public int currentTimeRangeDuration(){
-      return currentTimeRange.duration();
+  public int currentFilledTimeRangeDuration(){
+      return currentFilledTimeRange.duration();
   }
 
-  public int currentTimeRangeEndTime(){
-      return currentTimeRange.end();
+  public int currentFilledTimeRangeEndTime(){
+      return currentFilledTimeRange.end();
   }
 
-  public void setCurrentTimeRangeStartTime(int start){
-      currentTimeRange.setStart(start);
+  public void setCurrentFilledTimeRangeStartTime(int start){
+      currentFilledTimeRange.setStart(start);
   }
 
-  public void setCurrentTimeRangeDuration(int duration){
-      currentTimeRange.setDuration(duration);
+  public void setCurrentFilledTimeRangeDuration(int duration){
+      currentFilledTimeRange.setDuration(duration);
+  }
+
+  public TimeRange eventTimeRange(Event event){
+      return event.getWhen();
   }
 
   public int eventStartTime(Event event){
