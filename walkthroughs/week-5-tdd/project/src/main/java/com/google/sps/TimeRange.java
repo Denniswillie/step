@@ -152,7 +152,7 @@ public final class TimeRange {
     return point < range.start + range.duration;
   }
 
-  private static boolean containsEnd(int endPoint){
+  public boolean containsEnd(int endPoint){
       //if the point comes before or at the start of the timerange, then the timerange cannot contain it
       if(this.start >= endPoint){
           return false;
@@ -163,14 +163,12 @@ public final class TimeRange {
           return false;
       }
 
-      if(endPoint <= this.end){
-          return true;
-      }
+      return endPoint <= this.end();
   }
 
-  private static boolean containsStart(int startPoint){
+  public boolean containsStart(int startPoint){
 
-      if(this.end <= startPoint){
+      if(this.end() <= startPoint){
           return false;
       }
 
@@ -178,9 +176,7 @@ public final class TimeRange {
           return false;
       }
 
-      if(startPoint >= this.start){
-          return true;
-      }
+      return startPoint >= this.start;
 
   }
 

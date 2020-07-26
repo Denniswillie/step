@@ -44,6 +44,10 @@ public final class MeetingRequest {
     this.attendees.addAll(attendees);
   }
 
+  public MeetingRequest(long duration) {
+    this.duration = duration;
+  }
+
   /**
    * Returns a read-only copy of the people who are required to attend this meeting.
    */

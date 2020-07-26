@@ -44,9 +44,10 @@ public final class FindMeetingQuery {
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       Set<String> mandatoryAttendees = new HashSet<String>(request.getAttendees());
+      Set<String> optionalAttendees = new HashSet<String>(request.getOptionalAttendees());
 
       requestDuration = request.getDuration();
-      currentFilledTimeRange = new CurrentTimeRange(0,0);
+      currentFilledTimeRange = new ModifiableTimeRange(0,0);
       timeRangesForRequestedEvent = new ArrayList<TimeRange>();
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<TimeRange>();
       timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<TimeRange>();
@@ -70,7 +71,7 @@ public final class FindMeetingQuery {
               boolean eventContainsMandatoryAttendee = false;
 
               for(String attendee: eventAttendees){
-                  if(requestAttendees.contains(attendee)){
+                  if(mandatoryAttendees.contains(attendee)){
 
                       eventContainsMandatoryAttendee = true;
 
@@ -102,7 +103,7 @@ public final class FindMeetingQuery {
                       }
                       else if(eventTimeRange(event).end() > lastTimeRangeInList.end()){
                           int newTimeRangeDuration = eventTimeRange(event).end() - lastTimeRangeInList.start();
-                          TimeRange newTimeRange = new TimeRange.fromStartDuration(lastTimeRangeInList.start(), newTimeRangeDuration);
+                          TimeRange newTimeRange = TimeRange.fromStartDuration(lastTimeRangeInList.start(), newTimeRangeDuration);
                           timeRangesForEventsWithOptionalAndNoMandatoryAttendees.remove(listSize - 1);
                           timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(newTimeRange);
                       }
@@ -121,7 +122,10 @@ public final class FindMeetingQuery {
       //find closest optional attendees time range from (x = 0)
 
       if(timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size() > 0){
-          
+        
+        //add end of day on timeRangesForEventsWithOptionalAndNoMandatoryAttendees
+        timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(TimeRange.fromStartDuration(1440, 0));
+
         ModifiableTimeRange previousOptionalAttendeesTimeRange = new ModifiableTimeRange(0,0);
         int currentMandatoryAttendeesListIndex = 0;
         for(TimeRange optionalTimeRange: timeRangesForEventsWithOptionalAndNoMandatoryAttendees){
@@ -132,8 +136,8 @@ public final class FindMeetingQuery {
             for(TimeRange currentMandatoryTimeRange: timeRangesForRequestedEvent){
 
                 //updating previousOptionalAttendeesTimeRange
-                previousOptionalAttendeesTimeRange.setStart(currentMandatoryTimeRange.start());
-                previousOptionalAttendeesTimeRange.setDuration(currentMandatoryTimeRange.duration());
+                previousOptionalAttendeesTimeRange.setStart(optionalTimeRange.start());
+                previousOptionalAttendeesTimeRange.setDuration(optionalTimeRange.duration());
 
                 if(thisContainsThat(currentTimeRange, currentMandatoryTimeRange)){
                     timeRangesIncludingMandatoryAndOptionalAttendees.add(currentMandatoryTimeRange);
@@ -147,7 +151,7 @@ public final class FindMeetingQuery {
                     int temporaryDuration = currentTimeRange.end() - currentMandatoryTimeRange.start();
                     if(temporaryDuration >= requestDuration){
                         timeRangesIncludingMandatoryAndOptionalAttendees.add(
-                            TimeRange.fromStartDuration(currentMandatoryTimeRange.start(), temporaryDuration);
+                            TimeRange.fromStartDuration(currentMandatoryTimeRange.start(), temporaryDuration)
                         );
                     }
                 }
@@ -155,7 +159,7 @@ public final class FindMeetingQuery {
                     int temporaryDuration = currentMandatoryTimeRange.end() - currentTimeRange.start();
                     if(temporaryDuration >= requestDuration){
                         timeRangesIncludingMandatoryAndOptionalAttendees.add(
-                            TimeRange.fromStartDuration(currentTimeRange.start(), temporaryDuration);
+                            TimeRange.fromStartDuration(currentTimeRange.start(), temporaryDuration)
                         );
                     }
                 }
@@ -252,7 +256,7 @@ public final class FindMeetingQuery {
       return thisTimeRange.containsEnd(thatTimeRange.end());
   }
 
-  public boolean thisContainsthat(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  public boolean thisContainsThat(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return thisContainsThatStart(thisTimeRange, thatTimeRange) &&
             thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }

@@ -1,11 +1,11 @@
 package com.google.sps;
 
-public class CurrentTimeRange{
+public class ModifiableTimeRange{
     
     private int start;
     private int duration;
 
-    public CurrentTimeRange(int start, int duration){
+    public ModifiableTimeRange(int start, int duration){
         this.start = start;
         this.duration = duration;
     }
