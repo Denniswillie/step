@@ -119,10 +119,48 @@ public final class FindMeetingQuery {
       }
 
       //find closest optional attendees time range from (x = 0)
+
       if(timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size() > 0){
           
-        ModifiableTimeRange currentTimeRange = new ModifiableTimeRange(0,0);
-        
+        ModifiableTimeRange previousOptionalAttendeesTimeRange = new ModifiableTimeRange(0,0);
+        int currentMandatoryAttendeesListIndex = 0;
+        for(TimeRange optionalTimeRange: timeRangesForEventsWithOptionalAndNoMandatoryAttendees){
+            int duration = optionalTimeRange.start() - previousOptionalAttendeesTimeRange.end();
+            //dont forget to update previousOptionalAttendeesTimeRange
+            int start = previousOptionalAttendeesTimeRange.end();
+            TimeRange currentTimeRange = TimeRange.fromStartDuration(start, duration);
+            for(TimeRange currentMandatoryTimeRange: timeRangesForRequestedEvent){
+
+                //updating previousOptionalAttendeesTimeRange
+                previousOptionalAttendeesTimeRange.setStart(currentMandatoryTimeRange.start());
+                previousOptionalAttendeesTimeRange.setDuration(currentMandatoryTimeRange.duration());
+
+                if(thisContainsThat(currentTimeRange, currentMandatoryTimeRange)){
+                    timeRangesIncludingMandatoryAndOptionalAttendees.add(currentMandatoryTimeRange);
+                }
+                else if(thisContainsThat(currentMandatoryTimeRange, currentTimeRange)){
+                    if(currentTimeRange.duration() >= requestDuration){
+                        timeRangesIncludingMandatoryAndOptionalAttendees.add(currentTimeRange);
+                    }
+                }
+                else if(thisOnlyContainsThatStart(currentTimeRange, currentMandatoryTimeRange)){
+                    int temporaryDuration = currentTimeRange.end() - currentMandatoryTimeRange.start();
+                    if(temporaryDuration >= requestDuration){
+                        timeRangesIncludingMandatoryAndOptionalAttendees.add(
+                            TimeRange.fromStartDuration(currentMandatoryTimeRange.start(), temporaryDuration);
+                        );
+                    }
+                }
+                else if(thisOnlyContainsThatEnd(currentTimeRange, currentMandatoryTimeRange)){
+                    int temporaryDuration = currentMandatoryTimeRange.end() - currentTimeRange.start();
+                    if(temporaryDuration >= requestDuration){
+                        timeRangesIncludingMandatoryAndOptionalAttendees.add(
+                            TimeRange.fromStartDuration(currentTimeRange.start(), temporaryDuration);
+                        );
+                    }
+                }
+            }
+        }
 
       }
 
@@ -204,5 +242,28 @@ public final class FindMeetingQuery {
 
   public int eventEndTime(Event event){
       return event.getWhen().end();
+  }
+
+  public boolean thisContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
+      return thisTimeRange.containsStart(thatTimeRange.start());
+  }
+
+  public boolean thisContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
+      return thisTimeRange.containsEnd(thatTimeRange.end());
+  }
+
+  public boolean thisContainsthat(TimeRange thisTimeRange, TimeRange thatTimeRange){
+      return thisContainsThatStart(thisTimeRange, thatTimeRange) &&
+            thisContainsThatEnd(thisTimeRange, thatTimeRange);
+  }
+
+  public boolean thisOnlyContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
+      return thisContainsThatStart(thisTimeRange, thatTimeRange) &&
+            !thisContainsThatEnd(thisTimeRange, thatTimeRange);
+  }
+
+  public boolean thisOnlyContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
+      return !thisContainsThatStart(thisTimeRange, thatTimeRange) &&
+            thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }
 }
