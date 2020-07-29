@@ -58,33 +58,6 @@ public final class FindMeetingQueryTest {
   }
 
   @Test
-  public void findMeetingQuery_checkEventsArrayElements(){
-
-      Event event1 = new Event("Event 1", TimeRange.fromStartDuration(TIME_0830AM, DURATION_60_MINUTES),
-            Arrays.asList(PERSON_A));
-      Event event2 = new Event("Event 2", TimeRange.fromStartDuration(TIME_0830AM, DURATION_60_MINUTES),
-            Arrays.asList(PERSON_A));
-      Event event3 = new Event("Event 3", TimeRange.fromStartDuration(TIME_0830AM, DURATION_60_MINUTES),
-            Arrays.asList(PERSON_A));
-      Event event4 = new Event("Event 4", TimeRange.fromStartDuration(TIME_0830AM, DURATION_60_MINUTES),
-            Arrays.asList(PERSON_A));
-      Event event5 = new Event("Event 5", TimeRange.fromStartDuration(TIME_0900AM, DURATION_60_MINUTES),
-            Arrays.asList(PERSON_B));
-
-      Collection<Event> events = Arrays.asList(event1, event2, event3, event4, event5);
-
-      MeetingRequest request = new MeetingRequest(NO_ATTENDEES, DURATION_1_HOUR);
-      query.query(events, request);
-
-      Assert.assertEquals(query.getEventsArray().length, 5);
-      Assert.assertTrue(Arrays.asList(query.getEventsArray()).contains(event1));
-      Assert.assertTrue(Arrays.asList(query.getEventsArray()).contains(event2));
-      Assert.assertTrue(Arrays.asList(query.getEventsArray()).contains(event3));
-      Assert.assertTrue(Arrays.asList(query.getEventsArray()).contains(event4));
-      Assert.assertTrue(Arrays.asList(query.getEventsArray()).contains(event5));
-  }
-
-  @Test
   public void optionsForNoAttendees() {
     MeetingRequest request = new MeetingRequest(NO_ATTENDEES, DURATION_1_HOUR);
 

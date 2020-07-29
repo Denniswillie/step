@@ -15,52 +15,42 @@
 package com.google.sps;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+* List the collection of timeranges that accommodate for both mandatory and optional attendees depending on the duration
+* of the requested event. If no timerange is available for both types of attendees, then it will return only the timeranges
+* that accommodate mandatory attendees.
+*/
 public final class FindMeetingQuery {
-
-    /**
-    * This algorithm returns a collection of timeslots available for the meeting request based on existing events.
-    * It will return an empty collection if no timeslots are available.
-    */
-
-    /**
-    * The basic functionality of optional attendees is that if one or more time ranges that contain optional attendees exist, then
-    * it will return those timeranges, else, the optional attendees will be ignored
-    */
 
   private ModifiableTimeRange currentFilledTimeRange;
   private long requestDuration;
   private List<TimeRange> timeRangesForRequestedEvent;
   private List<TimeRange> timeRangesForEventsWithOptionalAndNoMandatoryAttendees;
   private List<TimeRange> timeRangesIncludingMandatoryAndOptionalAttendees;
-
-  private Event[] eventsArray;
-
-  //for testing
-  public Event[] getEventsArray(){
-    return eventsArray;
-  }
+  private List<Event> eventsList;
 
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
       Set<String> mandatoryAttendees = new HashSet<String>(request.getAttendees());
       Set<String> optionalAttendees = new HashSet<String>(request.getOptionalAttendees());
 
-      requestDuration = request.getDuration();
       currentFilledTimeRange = new ModifiableTimeRange(0,0);
+      requestDuration = request.getDuration();
       timeRangesForRequestedEvent = new ArrayList<TimeRange>();
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<TimeRange>();
       timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<TimeRange>();
-      eventsArray = events.toArray(new Event[]{});
+      eventsList = (events instanceof List) ? (List)events : new ArrayList(events);
       
-      Arrays.sort(eventsArray, Event.ORDER_BY_TIMERANGE_START_TIME);
+      Collections.sort(eventsList, Event.ORDER_BY_TIMERANGE_START_TIME);
 
-      for(Event event: eventsArray){
+      for(Event event: eventsList){
           
           if(eventFitsInCurrentFilledTimeRange(event)){
 
