@@ -27,6 +27,7 @@ import java.util.Set;
 * of the requested event. If no timerange is available for both types of attendees, then it will return only the timeranges
 * that accommodate mandatory attendees.
 */
+
 public final class FindMeetingQuery {
 
   private ModifiableTimeRange currentFilledTimeRange;
@@ -38,29 +39,28 @@ public final class FindMeetingQuery {
 
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
-      Set<String> mandatoryAttendees = new HashSet<String>(request.getAttendees());
-      Set<String> optionalAttendees = new HashSet<String>(request.getOptionalAttendees());
-
+      Set<String> mandatoryAttendees = new HashSet<>(request.getAttendees());
+      Set<String> optionalAttendees = new HashSet<>(request.getOptionalAttendees());
       currentFilledTimeRange = new ModifiableTimeRange(0,0);
       requestDuration = request.getDuration();
-      timeRangesForRequestedEvent = new ArrayList<TimeRange>();
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<TimeRange>();
-      timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<TimeRange>();
+      timeRangesForRequestedEvent = new ArrayList<>();
+      timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<>();
+      timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<>();
       eventsList = (events instanceof List) ? (List)events : new ArrayList(events);
       
       Collections.sort(eventsList, Event.ORDER_BY_TIMERANGE_START_TIME);
 
-      for(Event event: eventsList){
-          
-          if(eventFitsInCurrentFilledTimeRange(event)){
+      mandatoryTimeRanges = getMandatoryTimeRanges(eventsList);
+      optionalTimeRanges = getOptionalTimeRanges(eventsList);
 
-              updateCurrentFilledTimeRangeWithEvent(event);
-                                        
+      for(Event event: eventsList){
+
+          if(eventFitsInCurrentFilledTimeRange(event)){
+              updateCurrentFilledTimeRangeWithEvent(event);     
               continue;
           }
           
           else{
-
               Set<String> eventAttendees = event.getAttendees();
               boolean eventContainsOptionalAttendee = false;
               boolean eventContainsMandatoryAttendee = false;
@@ -185,29 +185,29 @@ public final class FindMeetingQuery {
                 timeRangesForRequestedEvent : timeRangesIncludingMandatoryAndOptionalAttendees;
   }
 
-  public boolean eventFitsInCurrentFilledTimeRange(Event event){
+  private boolean eventFitsInCurrentFilledTimeRange(Event event){
       
       return eventStartTime(event) >= currentFilledTimeRangeStartTime() && 
             eventEndTime(event) <= currentFilledTimeRangeEndTime();
   }
 
-  public void updateCurrentFilledTimeRangeWithEvent(Event event){
+  private void updateCurrentFilledTimeRangeWithEvent(Event event){
       int temporaryCurrentTimeRangeEndTime = currentFilledTimeRangeEndTime();
       setCurrentFilledTimeRangeStartTime(eventStartTime(event));
       setCurrentFilledTimeRangeDuration(temporaryCurrentTimeRangeEndTime - currentFilledTimeRangeStartTime());
   }
 
-  public boolean noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(Event event){
+  private boolean noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(Event event){
 
       return eventStartTime(event) == currentFilledTimeRangeStartTime() && currentFilledTimeRangeDuration() == 0;
 
   }
 
-  public void setCurrentFilledTimeRangeDurationAsEventDuration(Event event){
+  private void setCurrentFilledTimeRangeDurationAsEventDuration(Event event){
       setCurrentFilledTimeRangeDuration(eventDuration(event));
   }
 
-  public void setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(Event event){
+  private void setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(Event event){
     int timeRangeDuration = eventStartTime(event) - currentFilledTimeRangeEndTime();
     if(timeRangeDuration >= requestDuration){
         timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentFilledTimeRangeEndTime(), timeRangeDuration));
@@ -216,7 +216,7 @@ public final class FindMeetingQuery {
     setCurrentFilledTimeRangeDuration(eventDuration(event));
   }
 
-  public void addRemainingTimeSlotToTimeRangesForRequestedEvent(){
+  private void addRemainingTimeSlotToTimeRangesForRequestedEvent(){
       int endOfDay = 24 * 60;
       int timeLeftBetweenEndOfDayAndCurrentEndTime = endOfDay - currentFilledTimeRangeEndTime();
       if(currentFilledTimeRangeEndTime() < endOfDay && timeLeftBetweenEndOfDayAndCurrentEndTime >= requestDuration){
@@ -225,97 +225,97 @@ public final class FindMeetingQuery {
       }
   }
 
-  public int currentFilledTimeRangeStartTime(){
+  private int currentFilledTimeRangeStartTime(){
       return currentFilledTimeRange.start();
   }
 
-  public int currentFilledTimeRangeDuration(){
+  private int currentFilledTimeRangeDuration(){
       return currentFilledTimeRange.duration();
   }
 
-  public int currentFilledTimeRangeEndTime(){
+  private int currentFilledTimeRangeEndTime(){
       return currentFilledTimeRange.end();
   }
 
-  public void setCurrentFilledTimeRangeStartTime(int start){
+  private void setCurrentFilledTimeRangeStartTime(int start){
       currentFilledTimeRange.setStart(start);
   }
 
-  public void setCurrentFilledTimeRangeDuration(int duration){
+  private void setCurrentFilledTimeRangeDuration(int duration){
       currentFilledTimeRange.setDuration(duration);
   }
 
-  public TimeRange eventTimeRange(Event event){
+  private TimeRange eventTimeRange(Event event){
       return event.getWhen();
   }
 
-  public int eventStartTime(Event event){
+  private int eventStartTime(Event event){
       return event.getWhen().start();
   }
 
-  public int eventDuration(Event event){
+  private int eventDuration(Event event){
       return event.getWhen().duration();
   }
 
-  public int eventEndTime(Event event){
+  private int eventEndTime(Event event){
       return event.getWhen().end();
   }
 
-  public boolean thisContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  private boolean thisContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return thisTimeRange.containsStart(thatTimeRange.start());
   }
 
-  public boolean thisContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  private boolean thisContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return thisTimeRange.containsEnd(thatTimeRange.end());
   }
 
-  public boolean thisContainsThat(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  private boolean thisContainsThat(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return thisContainsThatStart(thisTimeRange, thatTimeRange) &&
             thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }
 
-  public boolean thisOnlyContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  private boolean thisOnlyContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return thisContainsThatStart(thisTimeRange, thatTimeRange) &&
             !thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }
 
-  public boolean thisOnlyContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
+  private boolean thisOnlyContainsThatEnd(TimeRange thisTimeRange, TimeRange thatTimeRange){
       return !thisContainsThatStart(thisTimeRange, thatTimeRange) &&
             thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }
 
-  public boolean currentEventTimeRangeStartIsLocatedAfterLastTimeRangeInListEnd(Event event, TimeRange lastTimeRangeInList){
+  private boolean currentEventTimeRangeStartIsLocatedAfterLastTimeRangeInListEnd(Event event, TimeRange lastTimeRangeInList){
       return eventTimeRange(event).start() > lastTimeRangeInList.end();
   }
 
-  public void addEventTimeRangeToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(Event event){
+  private void addEventTimeRangeToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(Event event){
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(eventTimeRange(event));
   }
 
-  public boolean currentEventTimeRangeEndTimeIsLocatedAfterLastTimeRangeEndTime(Event event, TimeRange lastTimeRangeInList){
+  private boolean currentEventTimeRangeEndTimeIsLocatedAfterLastTimeRangeEndTime(Event event, TimeRange lastTimeRangeInList){
       return eventTimeRange(event).end() > lastTimeRangeInList.end();
   }
 
-  public void replaceTheLastTimeRangeWithCurrentTimeRange(Event event, TimeRange lastTimeRangeInList, int listSize){
+  private void replaceTheLastTimeRangeWithCurrentTimeRange(Event event, TimeRange lastTimeRangeInList, int listSize){
       int newTimeRangeDuration = eventTimeRange(event).end() - lastTimeRangeInList.start();
       TimeRange newTimeRange = TimeRange.fromStartDuration(lastTimeRangeInList.start(), newTimeRangeDuration);
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees.remove(listSize - 1);
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(newTimeRange);
   }
 
-  public void addEndOfDayToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(){
+  private void addEndOfDayToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(){
       TimeRange endOfDayPoint = TimeRange.fromStartDuration(1440,0);
       timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(endOfDayPoint);
   }
 
-  public TimeRange setCurrentGapOptionalTimeRange(TimeRange optionalTimeRange, 
+  private TimeRange setCurrentGapOptionalTimeRange(TimeRange optionalTimeRange, 
                                                 ModifiableTimeRange previousOptionalTimeRange){
       int duration = optionalTimeRange.start() - previousOptionalTimeRange.end();
       int start = previousOptionalTimeRange.end();
       return TimeRange.fromStartDuration(start, duration);
   }
 
-  public boolean currentGapOptionalTimeRangeHasAppropriateDuration(TimeRange currentGapOptionalTimeRange,
+  private boolean currentGapOptionalTimeRangeHasAppropriateDuration(TimeRange currentGapOptionalTimeRange,
                                                                     long requestDuration){
       return currentGapOptionalTimeRange.duration() >= requestDuration;
   }  
