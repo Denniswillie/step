@@ -152,34 +152,6 @@ public final class TimeRange {
     return point < range.start + range.duration;
   }
 
-  public boolean containsEnd(int endPoint){
-      //if the point comes before or at the start of the timerange, then the timerange cannot contain it
-      if(this.start >= endPoint){
-          return false;
-      }
-
-      //if the timerange doesn't have duration, then the timerange cannot contain it
-      if(this.duration <= 0){
-          return false;
-      }
-
-      return endPoint <= this.end();
-  }
-
-  public boolean containsStart(int startPoint){
-
-      if(this.end() <= startPoint){
-          return false;
-      }
-
-      if(this.duration <= 0){
-          return false;
-      }
-
-      return startPoint >= this.start;
-
-  }
-
   private static boolean equals(TimeRange a, TimeRange b) {
     return a.start == b.start && a.duration == b.duration;
   }
