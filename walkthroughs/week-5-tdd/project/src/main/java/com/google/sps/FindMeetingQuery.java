@@ -22,227 +22,212 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
-* List the collection of timeranges that accommodate for both mandatory and optional attendees depending on the duration
-* of the requested event. If no timerange is available for both types of attendees, then it will return only the timeranges
-* that accommodate mandatory attendees.
-*/
-
+// FindMeetingQuery is the container class for finding free time slots between events for attendees on the meeting request
 public final class FindMeetingQuery {
 
-  private ModifiableTimeRange currentFilledTimeRange;
-  private long requestDuration;
-  private List<TimeRange> timeRangesForRequestedEvent;
-  private List<TimeRange> timeRangesForEventsWithOptionalAndNoMandatoryAttendees;
-  private List<TimeRange> timeRangesIncludingMandatoryAndOptionalAttendees;
-  private List<Event> eventsList;
+  //the current TimeRange that is being used as a bench mark for when populating mandatoryTimeRange
+  private TimeRange window = new TimeRange.fromStartDuration(0,0);
 
+  //the precious optionalTimeRange for when populating mixedTimeRange
+  private TimeRange previousOptionalTimeRange = new TimeRange.fromStartDuration(0,0);
+
+  private long requestDuration;
+
+  //AVAILABLE time slots for mandatory attendees
+  private List<TimeRange> mandatoryTimeRanges = new ArrayList<>();
+
+  //UNAVAILABLE time slots for optional attendees
+  private List<TimeRange> optionalTimeRanges = new ArrayList<>();
+
+  //AVAILABLE time slots for mandatory and optional attendees
+  private List<TimeRange> mixedTimeRanges = new ArrayList<>();
+
+  private Set<String> mandatoryAttendees;
+  private Set<String> optionalAttendees;
+  private List<Event> eventsList;
+  private boolean eventContainsMandatoryAttendee = false;
+  private boolean eventContainsOptionalAttendee = false;
+
+  /**
+  * @return the collection of timeranges that accommodate for both mandatory and optional attendees depending on the duration
+  * of the requested event. If no timerange is available for both types of attendees, then it will @return only the timeranges
+  * that accommodate mandatory attendees.
+  *
+  * @param events a collection of events that have timeranges and attendees for each corresponding event.
+  * @param request meeting request containing a collection of mandatory and 
+  *                optional attendees, and duration for the requested event.
+  */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
-      Set<String> mandatoryAttendees = new HashSet<>(request.getAttendees());
-      Set<String> optionalAttendees = new HashSet<>(request.getOptionalAttendees());
-      currentFilledTimeRange = new ModifiableTimeRange(0,0);
-      requestDuration = request.getDuration();
-      timeRangesForRequestedEvent = new ArrayList<>();
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees = new ArrayList<>();
-      timeRangesIncludingMandatoryAndOptionalAttendees = new ArrayList<>();
-      eventsList = (events instanceof List) ? (List)events : new ArrayList(events);
+      setRequestedAttendees(request);
+      setRequestedDuration(request);
+      setEventsList(events);
       
+      //eventsList must be sorted so timeRanges can be populated starting from the beginning to end of day
       Collections.sort(eventsList, Event.ORDER_BY_TIMERANGE_START_TIME);
 
-      mandatoryTimeRanges = getMandatoryTimeRanges(eventsList);
-      optionalTimeRanges = getOptionalTimeRanges(eventsList);
+      populateTimeRanges();
+      
+      if(mandatoryTimeRanges.isEmpty() || optionalTimeRanges.size() == 1){
+          return mandatoryTimeRanges;
+      }    
 
+      populateMixedTimeRanges();
+
+      return (mixedTimeRanges.isEmpty()) ? mandatoryTimeRanges : mixedTimeRanges;
+  }
+
+///////////////////////////////////////////////////////////////////////////////////
+  //Setters
+  private void setRequestedAttendees(MeetingRequest request){
+      mandatoryAttendees = new HashSet<>(request.getAttendees());
+      optionalAttendees = new HashSet<>(request.getOptionalAttendees());
+  }
+
+  private void setRequestedDuration(MeetingRequest request){
+      requestDuration = request.getDuration();
+  }
+
+  private void setEventsList(Collection<Event> events){
+      eventsList = (events instanceof List) ? (List)events : new ArrayList(events);
+  }
+////////////////////////////////////////////////////////////////////////////////////
+
+  //populate mandatoryTimeRanges and optionalTimeRanges
+  private void populateTimeRanges(){
       for(Event event: eventsList){
 
-          if(eventFitsInCurrentFilledTimeRange(event)){
-              updateCurrentFilledTimeRangeWithEvent(event);     
+          if(eventFitsWindow(event)){
               continue;
           }
           
           else{
               Set<String> eventAttendees = event.getAttendees();
-              boolean eventContainsOptionalAttendee = false;
-              boolean eventContainsMandatoryAttendee = false;
+              eventContainsOptionalAttendee = false;
+              eventContainsMandatoryAttendee = false;
 
-              for(String attendee: eventAttendees){
-                  if(mandatoryAttendees.contains(attendee)){
-
-                      eventContainsMandatoryAttendee = true;
-
-                      if(noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(event)){
-                          setCurrentFilledTimeRangeDurationAsEventDuration(event);
-                      }
-                      else{
-                          setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(event);
-                      }
-                      break;
-                  }
-                  else if(!eventContainsOptionalAttendee){
-                      if(optionalAttendees.contains(attendee)){
-                          eventContainsOptionalAttendee = true;
-                      }
-                  }
-              }
-
-              //make the optional timeranges to be a one-layered collection of timeranges
-              if(!eventContainsMandatoryAttendee && eventContainsOptionalAttendee){
-                  int listSize = timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size();
-                  if(listSize == 0){
-                      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(eventTimeRange(event));   
-                  }
-                  else{
-                      TimeRange lastTimeRangeInList = timeRangesForEventsWithOptionalAndNoMandatoryAttendees.get(listSize - 1);    
-                      if(currentEventTimeRangeStartIsLocatedAfterLastTimeRangeInListEnd(event, lastTimeRangeInList)){
-                          addEventTimeRangeToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(event);
-                      }
-                      else if(eventTimeRange(event).end() > lastTimeRangeInList.end()){
-                          replaceTheLastTimeRangeWithCurrentTimeRange(event, lastTimeRangeInList, listSize);
-                      }
-                  }
-              }
+              populateMandatoryTimeRanges(event, eventAttendees);
+              populateOptionalTimeRanges(event);
           }
       }
-      
-      addRemainingTimeSlotToTimeRangesForRequestedEvent();
-
-      int timeRangesForRequestedEventSize = timeRangesForRequestedEvent.size();
-      if(timeRangesForRequestedEventSize == 0){
-          return timeRangesForRequestedEvent;
-      }
-
-      if(timeRangesForEventsWithOptionalAndNoMandatoryAttendees.size() > 0){
-        
-        addEndOfDayToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees();
-
-        //previousOptionalAttendeesTimeRange initialized as start of day (00:00)
-        ModifiableTimeRange previousOptionalTimeRange = new ModifiableTimeRange(0,0);
-
-        /**
-        * Find all the appropriate time ranges that exist at the gaps of timeRangesForEventsWithOptionalAndNoMandatoryAttendees.
-        *
-        * There are 4 test cases for the lookups, which are:
-        * Note: 
-        * Top => currentMandatoryTimeRange (All the free timeranges on timeRangesForRequestedEvent)
-        * Bottom => optionalTimeRange (All the filled timeranges by optional attendees only and no mandatory attendees)
-        *
-        *  1.  _________       ________   _______       _____
-        *      _________  ,  __________ , _________ , _________
-        *
-        *  2.  _________     __________   _________   _________
-        *      _________  ,    ________ , _______   ,   _____
-        *
-        *  3.  ________        ______
-        *      ______     ,  ______ 
-        *
-        *  4.  ______        ______
-        *      ________   ,    ______
-        */
-
-        for(TimeRange optionalTimeRange: timeRangesForEventsWithOptionalAndNoMandatoryAttendees){
-
-            //gapOptionalTimeRange is the current gap between the current optional time range and the previous optional time range
-            TimeRange currentGapOptionalTimeRange = setCurrentGapOptionalTimeRange(optionalTimeRange, 
-                                                                                    previousOptionalTimeRange);
-
-            for(TimeRange currentMandatoryTimeRange: timeRangesForRequestedEvent){
-
-                //updating previousOptionalAttendeesTimeRange
-                previousOptionalTimeRange.setStart(optionalTimeRange.start());
-                previousOptionalTimeRange.setDuration(optionalTimeRange.duration());
-
-                if(thisContainsThat(currentGapOptionalTimeRange, currentMandatoryTimeRange)){
-                    //The time range can automatically be added since the currentMandatoryTimeRange has the appropriate duration
-                    timeRangesIncludingMandatoryAndOptionalAttendees.add(currentMandatoryTimeRange);
-                }
-                else if(thisContainsThat(currentMandatoryTimeRange, currentGapOptionalTimeRange)){
-                    if(currentGapOptionalTimeRangeHasAppropriateDuration(currentGapOptionalTimeRange, requestDuration)){
-                        timeRangesIncludingMandatoryAndOptionalAttendees.add(currentGapOptionalTimeRange);
-                    }
-                }
-                else if(thisOnlyContainsThatStart(currentGapOptionalTimeRange, currentMandatoryTimeRange)){
-                    int temporaryDuration = currentGapOptionalTimeRange.end() - currentMandatoryTimeRange.start();
-                    if(temporaryDuration >= requestDuration){
-                        timeRangesIncludingMandatoryAndOptionalAttendees.add(
-                            TimeRange.fromStartDuration(currentMandatoryTimeRange.start(), temporaryDuration)
-                        );
-                    }
-                }
-                else if(thisOnlyContainsThatEnd(currentGapOptionalTimeRange, currentMandatoryTimeRange)){
-                    int temporaryDuration = currentMandatoryTimeRange.end() - currentGapOptionalTimeRange.start();
-                    if(temporaryDuration >= requestDuration){
-                        timeRangesIncludingMandatoryAndOptionalAttendees.add(
-                            TimeRange.fromStartDuration(currentGapOptionalTimeRange.start(), temporaryDuration)
-                        );
-                    }
-                }
-            }
-        }
-
-      }
-
-      return (timeRangesIncludingMandatoryAndOptionalAttendees.size() == 0) ? 
-                timeRangesForRequestedEvent : timeRangesIncludingMandatoryAndOptionalAttendees;
+      completeMandatoryTimeRanges();
+      completeOptionalTimeRanges();
   }
 
-  private boolean eventFitsInCurrentFilledTimeRange(Event event){
+  private boolean eventFitsWindow(Event event){
       
       return eventStartTime(event) >= currentFilledTimeRangeStartTime() && 
             eventEndTime(event) <= currentFilledTimeRangeEndTime();
   }
 
-  private void updateCurrentFilledTimeRangeWithEvent(Event event){
-      int temporaryCurrentTimeRangeEndTime = currentFilledTimeRangeEndTime();
-      setCurrentFilledTimeRangeStartTime(eventStartTime(event));
-      setCurrentFilledTimeRangeDuration(temporaryCurrentTimeRangeEndTime - currentFilledTimeRangeStartTime());
-  }
+  private void populateMandatoryTimeRanges(Event event, Set<String> eventAttendees){
+      for(String attendee: eventAttendees){
+          if(mandatoryAttendees.contains(attendee)){
+              eventContainsMandatoryAttendee = true;
+              addMandatoryTimeRange(event);
+              updateWindow(event);
+              break;
+          }
 
-  private boolean noCurrentFilledTimeRangeAndEventStartsAtStartOfDay(Event event){
-
-      return eventStartTime(event) == currentFilledTimeRangeStartTime() && currentFilledTimeRangeDuration() == 0;
-
-  }
-
-  private void setCurrentFilledTimeRangeDurationAsEventDuration(Event event){
-      setCurrentFilledTimeRangeDuration(eventDuration(event));
-  }
-
-  private void setCurrentFilledTimeRangeAsEventTimeRangeAndAddTheFreeTimeSlotToTimeRangesForRequestedEvent(Event event){
-    int timeRangeDuration = eventStartTime(event) - currentFilledTimeRangeEndTime();
-    if(timeRangeDuration >= requestDuration){
-        timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentFilledTimeRangeEndTime(), timeRangeDuration));
-    }
-    setCurrentFilledTimeRangeStartTime(eventStartTime(event));
-    setCurrentFilledTimeRangeDuration(eventDuration(event));
-  }
-
-  private void addRemainingTimeSlotToTimeRangesForRequestedEvent(){
-      int endOfDay = 24 * 60;
-      int timeLeftBetweenEndOfDayAndCurrentEndTime = endOfDay - currentFilledTimeRangeEndTime();
-      if(currentFilledTimeRangeEndTime() < endOfDay && timeLeftBetweenEndOfDayAndCurrentEndTime >= requestDuration){
-          timeRangesForRequestedEvent.add(TimeRange.fromStartDuration(currentFilledTimeRangeEndTime(), 
-                                                                    timeLeftBetweenEndOfDayAndCurrentEndTime));
+          else{
+              if(!eventContainsOptionalAttendee){
+                  eventContainsOptionalAttendee = (optionalAttendees.contains(attendee)) ? true : false;
+              }
+          }
       }
   }
 
-  private int currentFilledTimeRangeStartTime(){
-      return currentFilledTimeRange.start();
+  private void addMandatoryTimeRange(Event event){
+      int timeRangeDuration = eventStartTime(event) - windowEndTime();
+      if(timeRangeDuration >= requestDuration){
+        mandatoryTimeRanges.add(TimeRange.fromStartDuration(windowEndTime(), timeRangeDuration));
+      }
   }
 
-  private int currentFilledTimeRangeDuration(){
-      return currentFilledTimeRange.duration();
+  //updating window as current time range that is being iterated
+  private void updateWindow(Event event){
+    int newStartTime = eventStartTime(event);
+    int newDuration = eventDuration(event);
+    setWindow(newStartTime, newDuration);
   }
 
-  private int currentFilledTimeRangeEndTime(){
-      return currentFilledTimeRange.end();
+  /**
+  * populate optionalTimeRanges only if the event does not have any mandatory attendees, because if the event has one or more
+  * mandatory attendees, then the event's time range will already be added to mandatoryTimeRanges
+  */
+  private void populateOptionalTimeRanges(Event event){
+      if(!eventContainsMandatoryAttendee && eventContainsOptionalAttendee){
+          if(optionalTimeRanges.isEmpty()){
+              optionalTimeRanges.add(eventTimeRange(event));   
+          }
+          else{
+              size = optionalTimeRanges.size();
+              TimeRange lastTimeRange = optionalTimeRanges.get(size - 1);    
+              if(eventStartsAfterLastEvent(event, lastTimeRange)){
+                  addToOptionalTimeRanges(event);
+              }
+              else{
+                  if(eventEndsAfterLastEvent(event, lastTimeRange)){
+                      replaceLastTimeRange(event, lastTimeRangeInList, size);
+                  }
+              }
+          }
+      }
   }
 
-  private void setCurrentFilledTimeRangeStartTime(int start){
-      currentFilledTimeRange.setStart(start);
+  private boolean eventStartsAfterLastEvent(Event event, TimeRange lastTimeRange){
+      return eventTimeRange(event).start() > lastTimeRange.end();
   }
 
-  private void setCurrentFilledTimeRangeDuration(int duration){
-      currentFilledTimeRange.setDuration(duration);
+  //add the current event's {@code TimeRange} to optionalTimeRanges
+  private void addToOptionalTimeRanges(Event event){
+      optionalTimeRanges.add(eventTimeRange(event));
+  }
+
+  private boolean eventEndsAfterLastEvent(Event event, TimeRange lastTimeRange){
+      return eventTimeRange(event).end() > lastTimeRange.end();
+  }
+
+  //replacing the last {@code TimeRange} with the current event's {@code TimeRange}
+  private void replaceLastTimeRange(Event event, TimeRange lastTimeRange, int size){
+      int newTimeRangeDuration = eventTimeRange(event).end() - lastTimeRange.start();
+      TimeRange newTimeRange = TimeRange.fromStartDuration(lastTimeRange.start(), newTimeRangeDuration);
+      optionalTimeRanges.remove(size - 1);
+      optionalTimeRanges.add(newTimeRange);
+  }
+
+  //add the remaining time slot until end of day to mandatoryTimeRanges
+  private void completeMandatoryTimeRanges(){
+      int endOfDay = 24 * 60;
+
+      //time left between current window end time and end of day
+      int timeLeft = endOfDay - windowEndTime();
+
+      if(timeLeft >= requestDuration){
+          mandatoryTimeRanges.add(TimeRange.fromStartDuration(windowEndTime(), timeLeft));
+      }
+  }
+
+  //add end of day as a point to optionalTimeRanges
+  private void completeOptionalTimeRanges(){
+      TimeRange endOfDayPoint = TimeRange.fromStartDuration(1440,0);
+      optionalTimeRanges.add(endOfDayPoint);
+  }
+
+  private int windowStartTime(){
+      return window.start();
+  }
+
+  private int windowDuration(){
+      return window.duration();
+  }
+
+  private int windowEndTime(){
+      return window.end();
+  }
+
+  private void setWindow(int start, int duration){
+      window = TimeRange.fromStartDuration(start, duration);
   }
 
   private TimeRange eventTimeRange(Event event){
@@ -259,6 +244,70 @@ public final class FindMeetingQuery {
 
   private int eventEndTime(Event event){
       return event.getWhen().end();
+  }
+
+  private void populateMixedTimeRanges(){
+
+    /**
+    * Find all the appropriate time ranges that exist at the gaps of timeRangesForEventsWithOptionalAndNoMandatoryAttendees.
+    *
+    * There are 4 test cases for the lookups, which are:
+    * Note: 
+    * Top => currentMandatoryTimeRange (All the free timeranges on timeRangesForRequestedEvent)
+    * Bottom => optionalTimeRange (All the filled timeranges by optional attendees only and no mandatory attendees)
+    *
+    *  1.  _________       ________   _______       _____
+    *      _________  ,  __________ , _________ , _________
+    *
+    *  2.  _________     __________   _________   _________
+    *      _________  ,    ________ , _______   ,   _____
+    *
+    *  3.  ________        ______
+    *      ______     ,  ______ 
+    *
+    *  4.  ______        ______
+    *      ________   ,    ______
+    */
+      
+    for(TimeRange optionalTimeRange: optionalTimeRanges){
+    
+        //current gap between the current optional time range and the previous optional time range
+        TimeRange currentGap = setCurrentGap(optionalTimeRange, previousOptionalTimeRange);
+
+        for(TimeRange mandatoryTimeRange: mandatoryTimeRanges){
+    
+            //updating previousOptionalAttendeesTimeRange
+            int newStartTime = optionalTimeRange.start();
+            int newDuration = optionalTimeRange.duration();
+            previousOptionalTimeRange = TimeRange.fromStartDuration(newStartTime, newDuration);
+    
+            if(thisContainsThat(currentGapOptionalTimeRange, mandatoryTimeRange)){
+                //The time range can automatically be added since the currentMandatoryTimeRange has the appropriate duration
+                mixedTimeRanges.add(mandatoryTimeRange);
+            }
+            else if(thisContainsThat(mandatoryTimeRange, currentGapOptionalTimeRange)){
+                if(currentGapOptionalTimeRangeHasAppropriateDuration(currentGapOptionalTimeRange, requestDuration)){
+                    mixedTimeRanges.add(currentGapOptionalTimeRange);
+                }
+            }
+            else if(thisOnlyContainsThatStart(currentGapOptionalTimeRange, mandatoryTimeRange)){
+                int temporaryDuration = currentGapOptionalTimeRange.end() - mandatoryTimeRange.start();
+                if(temporaryDuration >= requestDuration){
+                    mixedTimeRanges.add(
+                        TimeRange.fromStartDuration(mandatoryTimeRange.start(), temporaryDuration)
+                    );
+                }
+            }
+            else if(thisOnlyContainsThatEnd(currentGapOptionalTimeRange, mandatoryTimeRange)){
+                int temporaryDuration = mandatoryTimeRange.end() - currentGapOptionalTimeRange.start();
+                if(temporaryDuration >= requestDuration){
+                    mixedTimeRanges.add(
+                        TimeRange.fromStartDuration(currentGapOptionalTimeRange.start(), temporaryDuration)
+                    );
+                }
+            }
+        }
+    }
   }
 
   private boolean thisContainsThatStart(TimeRange thisTimeRange, TimeRange thatTimeRange){
@@ -284,32 +333,8 @@ public final class FindMeetingQuery {
             thisContainsThatEnd(thisTimeRange, thatTimeRange);
   }
 
-  private boolean currentEventTimeRangeStartIsLocatedAfterLastTimeRangeInListEnd(Event event, TimeRange lastTimeRangeInList){
-      return eventTimeRange(event).start() > lastTimeRangeInList.end();
-  }
-
-  private void addEventTimeRangeToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(Event event){
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(eventTimeRange(event));
-  }
-
-  private boolean currentEventTimeRangeEndTimeIsLocatedAfterLastTimeRangeEndTime(Event event, TimeRange lastTimeRangeInList){
-      return eventTimeRange(event).end() > lastTimeRangeInList.end();
-  }
-
-  private void replaceTheLastTimeRangeWithCurrentTimeRange(Event event, TimeRange lastTimeRangeInList, int listSize){
-      int newTimeRangeDuration = eventTimeRange(event).end() - lastTimeRangeInList.start();
-      TimeRange newTimeRange = TimeRange.fromStartDuration(lastTimeRangeInList.start(), newTimeRangeDuration);
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.remove(listSize - 1);
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(newTimeRange);
-  }
-
-  private void addEndOfDayToTimeRangesForEventsWithOptionalAndNoMandatoryAttendees(){
-      TimeRange endOfDayPoint = TimeRange.fromStartDuration(1440,0);
-      timeRangesForEventsWithOptionalAndNoMandatoryAttendees.add(endOfDayPoint);
-  }
-
   private TimeRange setCurrentGapOptionalTimeRange(TimeRange optionalTimeRange, 
-                                                ModifiableTimeRange previousOptionalTimeRange){
+                                                TimeRange previousOptionalTimeRange){
       int duration = optionalTimeRange.start() - previousOptionalTimeRange.end();
       int start = previousOptionalTimeRange.end();
       return TimeRange.fromStartDuration(start, duration);
