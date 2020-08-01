@@ -102,12 +102,47 @@ public final class FindMeetingQuery {
                 }
             }
         }
+        if(TimeRange.END_OF_DAY + 1 - window.end() >= request.getDuration){
+            mandatoryTimeRanges.add(TimeRange.fromStartEnd(window.end(), TimeRange.END_OF_DAY + 1));
+        }
         return Collections.unmodifiableList(mandatoryTimeRanges);
     }
 
-    // private List<TimeRange> getOptionalTimeRanges(MeetingRequest request, List<Event> eventsList){
+    private List<TimeRange> getOptionalTimeRanges(MeetingRequest request, List<Event> eventsList){
+        List<TimeRange> optionalTimeRanges = new LinkedList<>();
+        Set<String> optionalAttendees = new HashSet<>(request.getOptionalAttendees());
+        for(Event event: eventsList){
+            for(String attendee: event.getOptionalAttendees()){
+                if(optionalAttendees.contains(attendee)){
+                    if(optionalTimeRanges.isEmpty()){
+                        optionalTimeRanges.add(event.getWhen());
+                    }
+                    else if(event.getWhen().start() <= optionalTimeRanges.getLast().end()){
+                        TimeRange removedTimeRange = optionalTimeRanges.removeLast();
+                        int newStartTime = Math.min(event.getWhen().start(), removedTimeRange.start());
+                        int newEndTime = Math.max(event.getWhen().end(), removedTimeRange.end());
+                        optionalTimeRanges.addLast(TimeRange.fromStartEnd(newStartTime, newEndTime, false));         
+                    }
+                    break;
+                }
+            }
+        }
+        return Collections.unmodifiableList(optionalTimeRanges);
+    }
 
-    // }
+    private List<TimeRange> getOptionalTimeRanges(MeetingRequest request, List<Event> eventsList){
+        List<TimeRange> optionalTimeRanges = new LinkedList<>();
+        Set<String> optionalAttendees = new HashSet<>(request.getOptionalAttendees());
+        Set<String> optionalIntersectionSet = new HashSet<>();
+        for(Event event: eventsList){
+            Set<String> eventAttendees = event.getAttendees();
+            SetView<String> intersection = Sets.intersection(eventAttendees, optionalAttendees);
+            optionalIntersectionSet = intersection.copyInto(optionalIntersectionSet);
+            if(!optionalIntersectionSet.isEmpty()){
+
+            }
+        }
+    }
 
     // private List<TimeRange> getMixedTimeRanges(){
 
