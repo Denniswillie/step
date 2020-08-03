@@ -147,7 +147,7 @@ public final class FindMeetingQuery {
         List<TimeRange> mixedTimeRanges = new ArrayList<>();
         TimeRange previousOptionalTimeRange = TimeRange.fromStartDuration(0, 0);
         for(TimeRange optionalTimeRange: optionalTimeRanges){
-            int gapStart = previousOptionalTimeRange.start();
+            int gapStart = previousOptionalTimeRange.end();
             int gapEnd = optionalTimeRange.start();
             TimeRange currentGap = TimeRange.fromStartEnd(gapStart, gapEnd, false);
             previousOptionalTimeRange = optionalTimeRange;
