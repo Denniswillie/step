@@ -72,12 +72,10 @@ public final class FindMeetingQuery {
         List<TimeRange> mandatoryTimeRanges = new ArrayList<>();
         Set<String> mandatoryAttendees = new HashSet<>(request.getAttendees());
         TimeRange window = TimeRange.fromStartDuration(0,0);
-        for (Event event: eventsList) {
-            Set<String> mandatoryIntersectionSet = new HashSet<>();
+        for (Event event : eventsList) {
             Set<String> eventAttendees = event.getAttendees();
             SetView<String> intersection = Sets.intersection(mandatoryAttendees, eventAttendees);
-            mandatoryIntersectionSet = intersection.copyInto(mandatoryIntersectionSet);
-            if (!mandatoryIntersectionSet.isEmpty()) {
+            if (!intersection.isEmpty()) {
                 if (event.getWhen().start() <= window.end()) {
                     int newStartTime = Math.min(event.getWhen().start(), window.start());
                     int newEndTime = Math.max(event.getWhen().end(), window.end());
@@ -105,13 +103,11 @@ public final class FindMeetingQuery {
     private List<TimeRange> getOptionalTimeRanges(MeetingRequest request, List<Event> eventsList) {
         List<TimeRange> optionalTimeRanges = new LinkedList<>();
         Set<String> optionalAttendees = new HashSet<>(request.getOptionalAttendees());
-        for (Event event: eventsList) {
+        for (Event event : eventsList) {
             int lastElement = optionalTimeRanges.size() - 1;
-            Set<String> optionalIntersectionSet = new HashSet<>();
             Set<String> eventAttendees = event.getAttendees();
             SetView<String> intersection = Sets.intersection(eventAttendees, optionalAttendees);
-            optionalIntersectionSet = intersection.copyInto(optionalIntersectionSet);
-            if (!optionalIntersectionSet.isEmpty()) {
+            if (!intersection.isEmpty()) {
                 if (optionalTimeRanges.isEmpty()) {
                     optionalTimeRanges.add(event.getWhen());
                 }
@@ -145,12 +141,12 @@ public final class FindMeetingQuery {
         }
         List<TimeRange> mixedTimeRanges = new ArrayList<>();
         TimeRange previousOptionalTimeRange = TimeRange.fromStartDuration(0, 0);
-        for (TimeRange optionalTimeRange: optionalTimeRanges) {
+        for (TimeRange optionalTimeRange : optionalTimeRanges) {
             int gapStart = previousOptionalTimeRange.end();
             int gapEnd = optionalTimeRange.start();
             TimeRange currentGap = TimeRange.fromStartEnd(gapStart, gapEnd, false);
             previousOptionalTimeRange = optionalTimeRange;
-            for (TimeRange mandatoryTimeRange: mandatoryTimeRanges) {
+            for (TimeRange mandatoryTimeRange : mandatoryTimeRanges) {
                 if (currentGap.contains(mandatoryTimeRange)) {
                     mixedTimeRanges.add(mandatoryTimeRange);
                 }
